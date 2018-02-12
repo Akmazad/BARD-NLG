@@ -423,7 +423,7 @@ public class BaseModule {
 		bw = null;
 		try {
 			String filePathforJson = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\Matt-Az Interfacing [Gamma1]\\output_Explanation_Files [New 13 Level 0 (integrated with Matt's Java Code)]\\";
-			filePathforJson += (getFileNameWithoutExtension(new File(NLG_Az.filename)) + "_NLG_Explanation.html");
+			filePathforJson += (getFileNameWithoutExtension(new File(MainBatch.filename)) + "_NLG_Explanation.html");
 			File oFile = new File(filePathforJson);
 
 			/* This logic will make sure that the file 

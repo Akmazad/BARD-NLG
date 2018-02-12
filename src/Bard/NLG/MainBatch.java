@@ -18,9 +18,9 @@ import java.io.IOException;
 import java.util.Iterator;
 
 
-public class NLG_Az {
+public class MainBatch {
 	public static String filename = "";
-	public NLG_Az() {
+	public MainBatch() {
 		// TODO Auto-generated constructor stub
 	}
 
