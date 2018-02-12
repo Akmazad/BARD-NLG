@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
 
 public class Tools {
 
+    // --- --- --- Debug flag
+    public static final boolean DEBUG = true;
+
     // --- --- --- Logger
 
     /**

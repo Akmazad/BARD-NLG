@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static Bard.NLG.Generator.TextGenerator.DEBUG;
+import static Bard.NLG.Tools.DEBUG;
 import static Bard.NLG.Printer.Printer.SentenceControl.NO;
 import static Bard.NLG.Tools.shouldNotHappen;
 
