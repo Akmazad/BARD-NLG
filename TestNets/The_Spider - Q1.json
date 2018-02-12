@@ -1,0 +1,13 @@
+{
+	"netPath": "The_Spider.cmp",
+	"nodes": [
+		{"name": "AitF Sawyer Report", "conditioned": {"Yes": 1.0, "No": 0.0}, "background": false},
+		{"name": "Comms Analyst Winter Report", "conditioned": {"Yes": 1.0, "No": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Is _The Spider_ in the facility?", "state": "Yes"}
+	],
+	
+	"verbosity": "long"
+}

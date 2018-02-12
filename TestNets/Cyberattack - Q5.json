@@ -1,0 +1,17 @@
+{
+	"netPath": "./Cyberattack.cmp",
+	"nodes": [
+		{"name": "Glymer(High)", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "Alkemist(Med)", "conditioned": {"True": 0.0, "False": 1.0}, "background": false},
+		{"name": "Mark_of_Kain(Med)", "conditioned": {"True": 0.0, "False": 1.0}, "background": false},
+		{"name": "The_Crysalis(Med)", "conditioned": {"True": 0.0, "False": 1.0}, "background": false},
+		{"name": "Hail_Blob(High)", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "TeaTimeCowboy(Med)", "conditioned": {"True": 0.0, "False": 1.0}, "background": false}
+	],
+	
+	"target": [
+	{"name": "Cyberattack Culprit", "state": "Rattle-Jacks"}
+	],
+	"_comment": "this evidence-target settings reflects two non-interacting Common-effects",
+	"verbosity": "long"
+}

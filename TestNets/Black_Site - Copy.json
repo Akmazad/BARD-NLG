@@ -1,0 +1,19 @@
+{
+	"netPath": "Black_Site.cmp",
+	"nodes": [
+		{"name": "M4", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "M3", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "M6", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "M0", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "M5", "conditioned": {"True": 1.0, "False": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "M1", "state": "True"},
+		{"name": "M2", "state": "True"}
+	],
+	
+	"_comment": "",
+	
+	"verbosity": "long"
+}

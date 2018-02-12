@@ -1,0 +1,15 @@
+{
+	"netPath": "Problem - Evidence Chain (UlrikeH) BN V1.0.cmp",
+	"nodes": [
+		{"name": "E2", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "E2_1", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		
+	],
+	
+	"target":[
+		{"name": "H", "state": "True"},
+		{"name": "H_1", "state": "True"}
+	],
+	
+	"verbosity": "long"
+}

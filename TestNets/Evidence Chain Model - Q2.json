@@ -1,0 +1,14 @@
+{
+	"netPath": "Evidence Chain Model.cmp",
+	"nodes": [
+		{"name": "Brenda (1)", "conditioned": {"Not Stolen Claim B": 1.0, "Stolen Claim B": 0.0}, "background": false},
+		{"name": "Anne (2)", "conditioned": {"Not Stolen Claim B": 1.0, "Stolen Claim B": 0.0}, "background": false}		
+	],
+	
+	"target":[
+		{"name": "Cash Stolen 0.33 (case2 order1)", "state": "Stolen"},
+		{"name": "Cash Stolen 0.33 (case2 order2)", "state": "Stolen"}
+	],
+	
+	"verbosity": "long"
+}

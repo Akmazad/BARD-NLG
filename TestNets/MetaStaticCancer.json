@@ -1,0 +1,14 @@
+{
+	"netPath": "MetastaticCancer_steve.cmp",
+	"nodes": [
+		{"name": "Cancer", "conditioned": {"present": 0.8, "absent": 0.2}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Coma", "state": "C_present"}
+	],
+	
+	"_comment" : "this setting reflects diamond pattern",
+	
+	"verbosity": "long"
+}

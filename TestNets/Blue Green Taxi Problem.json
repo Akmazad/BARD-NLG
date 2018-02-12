@@ -1,0 +1,12 @@
+{
+	"netPath": "Blue Green Taxi Problem.cmp",
+	"nodes": [
+		{"name": "Taxi Compnay", "conditioned": {"Blue": 1.0, "Green": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Witness Reports", "state": "Reports Blue"}
+	],
+	
+	"verbosity": "long"
+}

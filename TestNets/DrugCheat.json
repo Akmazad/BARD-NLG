@@ -1,0 +1,12 @@
+{
+	"netPath": "Drug Cheat 2node.cmp",
+	"nodes": [
+		{"name": "Drug Cheat", "conditioned": {"True": 1.0, "False": 0.0}, "background": false}	
+	],
+	
+	"target":[
+		{"name": "Test Result", "state": "Positive"}
+	],
+	
+	"verbosity": "long"
+}

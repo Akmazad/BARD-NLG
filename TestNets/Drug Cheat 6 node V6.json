@@ -1,0 +1,16 @@
+{
+	"netPath": "Drug Cheat 6 node V6.cmp",
+	"nodes": [
+		{"name": "Do Drug Test", "conditioned": {"Yes": 1.0, "No": 0.0}, "background": false},
+		{"name": "Sample A Test Result", "conditioned": {"Positive": 1.0, "Negative": 0.0, "No Result": 0.0}, "background": false},
+		{"name": "Sample B Test Result", "conditioned": {"Positive": 1.0, "Negative": 0.0, "No Result": 0.0}, "background": false},
+		{"name": "Took M879", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "Sport", "conditioned": {"Swimming": 1.0, "Weight Lifting": 0.0, "Running": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Drug Cheat", "state": "True"}
+	],
+	
+	"verbosity": "long"
+}

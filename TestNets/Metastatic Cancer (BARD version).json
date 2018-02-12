@@ -1,0 +1,12 @@
+{
+	"netPath": "MetastaticCancer.cmp",
+	"nodes": [
+		{"name": "Cancer", "conditioned": {"present": 0.3, "absent": 0.7}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Coma", "state": "C_present"}
+	],
+	
+	"verbosity": "long"
+}

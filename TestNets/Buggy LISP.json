@@ -1,0 +1,14 @@
+{
+	"netPath": "Buggy LISP.cmp",
+	"nodes": [
+		{"name": "Computer Hardware", "conditioned": {"Functioning": 1.0, "Malfunction": 0.0}, "background": false},
+		{"name": "LISP Interpreter", "conditioned": {"Working": 1.0, "Not Working": 0.0}, "background": false},
+		{"name": "Text Editor", "conditioned": {"Cursor Flashing": 1.0, "Cursor Not Flashing": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Freds Code", "state": "Buggy"}
+	],
+	
+	"verbosity": "long"
+}

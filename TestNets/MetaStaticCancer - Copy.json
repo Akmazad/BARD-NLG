@@ -1,0 +1,15 @@
+{
+	"netPath": "MetastaticCancer_5nodes.cmp",
+	"nodes": [
+		{"name": "Cancer", "conditioned": {"present": 1.0, "absent": 0.0}, "background": false},
+		{"name": "Headaches", "background": true}
+	],
+	
+	"target":[
+		{"name": "Coma", "state": "C_present"}
+	],
+	
+	"_comment" : "this setting reflects diamond pattern",
+	
+	"verbosity": "long"
+}

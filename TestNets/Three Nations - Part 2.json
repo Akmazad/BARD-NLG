@@ -1,0 +1,13 @@
+{
+	"netPath": "Three Nations - Part 2.cmp",
+	"nodes": [
+		{"name": "Oclar Expert 1 Report", "conditioned": {"Positive": 1.0, "Negative": 0.0}, "background": false},
+		{"name": "Oclar Expert 2 Report", "conditioned": {"Positive": 0.0, "Negative": 1.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Oclar has Weapons", "state": "True"}
+	],
+	
+	"verbosity": "long"
+}

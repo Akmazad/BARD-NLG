@@ -1,0 +1,33 @@
+{
+    "netPath": "temp0.cmp",
+    "nodes": [
+        {
+            "name": "Test 2",
+            "conditioned": {
+                "T": 1.0
+            },
+            "background": false
+        },
+        {
+            "name": "Test 3",
+            "conditioned": {
+                "T": 1.0
+            },
+            "background": false
+        },
+        {
+            "name": "Test 4",
+            "conditioned": {
+                "T": 1.0
+            },
+            "background": false
+        }
+    ],
+    "target": [
+        {
+            "name": "Test 1",
+            "state": "T"
+        }
+    ],
+    "verbosity": "long"
+}

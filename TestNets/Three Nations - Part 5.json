@@ -1,0 +1,13 @@
+{
+	"netPath": "Three Nations - Part 5.cmp",
+	"nodes": [
+		{"name": "Oclar launched missile", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "Residue Detected", "conditioned": {"Positive": 1.0, "Negative": 0.0}, "background": false}
+  ],
+	
+	"target":[
+		{"name": "Trubia launched missile", "state": "True"}
+	],
+	
+	"verbosity": "long"
+}

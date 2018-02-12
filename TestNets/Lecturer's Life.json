@@ -1,0 +1,13 @@
+{
+	"netPath": "Lecturer's Life.cmp",
+	"nodes": [
+		{"name": "Office Light", "conditioned": {"On": 1.0, "Off": 0.0}, "background": false},
+		{"name": "Computer Login Status", "conditioned": {"Online": 1.0, "Offline": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "In Office?", "state": "Yes"}
+	],
+	
+	"verbosity": "long"
+}

@@ -1,0 +1,19 @@
+{
+	"netPath": "Three Nations Problem - complete BN.cmp",
+	"nodes": [
+		{"name": "Oclar Expert 1 Report", "conditioned": {"Positive": 1.0, "Negative": 0.0}, "background": false},
+		{"name": "Oclar Expert 2 Report", "conditioned": {"Positive": 1.0, "Negative": 0.0}, "background": false},
+		{"name": "Residue Detected", "conditioned": {"Positive": 1.0, "Negative": 0.0}, "background": false},
+		{"name": "Trubia Expert 1 Report", "conditioned": {"Positive": 1.0, "Negative": 0.0}, "background": false},
+		{"name": "Trubia Expert 2 Report", "conditioned": {"Positive": 1.0, "Negative": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Oclar has weapons", "state": "True"},
+		{"name": "Oclar launched missile", "state": "True"},
+		{"name": "Trubia has weapons", "state": "True"},
+    {"name": "Trubia launched missile", "state": "True"}
+	],
+	
+	"verbosity": "long"
+}

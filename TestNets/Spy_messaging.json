@@ -1,0 +1,16 @@
+{
+	"netPath": "Spy_messaging.cmp",
+	"nodes": [
+		{"name": "Palms", "conditioned": {"True": 0.8, "False": 0.2}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Ferman", "state": "True"},
+		{"name": "Doyle", "state": "True"},
+		{"name": "Stark", "state": "True"},
+		{"name": "Cylo", "state": "True"},
+		{"name": "Loft", "state": "True"}
+	],
+	
+	"verbosity": "long"
+}

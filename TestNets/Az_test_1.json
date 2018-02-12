@@ -1,0 +1,17 @@
+  {
+	"netPath": "./Az_test_1.cmp",
+	"nodes": [
+		{"name": "nodeA", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "nodeB", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "nodeC", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "nodeD", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "nodeE", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "nodeG", "conditioned": {"True": 1.0, "False": 0.0}, "background": false}
+	],
+	
+	"target": [
+	{"name": "Target", "state": "True"}
+	],
+	
+	"verbosity": "long"
+}

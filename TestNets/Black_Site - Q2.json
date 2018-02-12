@@ -1,0 +1,18 @@
+{
+	"netPath": "Black_Site.cmp",
+	"nodes": [
+		{"name": "Foreign Intel Intercept", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "Spy Plane Expert", "conditioned": {"True": 0.0, "False": 1.0}, "background": false},
+		{"name": "DoD Report", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "Radar Report", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "Drone Expert", "conditioned": {"True": 0.0, "False": 1.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Drone", "state": "True"}
+	],
+	
+	"_comment": "",
+	
+	"verbosity": "long"
+}

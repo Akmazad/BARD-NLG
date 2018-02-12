@@ -1,0 +1,15 @@
+{
+	"netPath": "Pearl Burglary Alarm Problem.cmp",
+	"nodes": [
+		{"name": "Burglary", "conditioned": {"Yes": 1.0, "No": 0.0}, "background": false},
+		{"name": "Earthquake", "conditioned": {"Yes": 1.0, "No": 0.0}, "background": false},
+		{"name": "John Calls", "conditioned": {"Yes": 1.0, "No": 0.0}, "background": false},
+		{"name": "Mary Calls", "conditioned": {"Yes": 1.0, "No": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Alarm", "state": "Rings"}
+	],
+	
+	"verbosity": "long"
+}

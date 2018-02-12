@@ -1,0 +1,15 @@
+{
+	"netPath": "Metastatic Cancer (BARD version).cmp",
+	"nodes": [
+		{"name": "Serum Calcium", "conditioned": {"Increased": 1.0, "No Increase": 0.0}, "background": false},
+		{"name": "Brain Tumour", "conditioned": {"Present": 1.0, "Absent": 0.0}, "background": false},
+		{"name": "Headache", "conditioned": {"Present": 1.0, "Absent": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Metastatic Cancer", "state": "Present "},
+		{"name": "Coma", "state": "Yes"}
+	],
+	
+	"verbosity": "long"
+}

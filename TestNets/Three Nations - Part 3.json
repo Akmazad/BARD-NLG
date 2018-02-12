@@ -1,0 +1,13 @@
+{
+	"netPath": "Three Nations - Part 3.cmp",
+	"nodes": [
+		{"name": "Trubia Expert 1 Report", "conditioned": {"Positive": 1.0, "Negative": 0.0}, "background": false},
+		{"name": "Trubia Expert 2 Report", "conditioned": {"Positive": 1.0, "Negative": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Trubia has Weapons", "state": "True"}
+	],
+	
+	"verbosity": "long"
+}

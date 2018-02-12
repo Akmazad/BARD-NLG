@@ -1,0 +1,15 @@
+{
+	"netPath": "ChestClinic.cmp",
+	"nodes": [
+		{"name": "Tuberculosis", "background": true},
+		{"name": "Bronchitis", "background": true},
+		{"name": "Dyspnea", "background": true},
+		{"name": "TbOrCa", "background": true}
+	],
+	
+	"target":[
+		{"name": "Bronchitis", "state": "yes"}
+	],
+	
+	"verbosity": "long"
+}

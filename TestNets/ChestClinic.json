@@ -1,0 +1,22 @@
+{
+	"netPath": "ChestClinic.cmp",
+	"nodes": [
+		{"name": "Smoking", "conditioned": {"yes": 1.0, "no": 0.0}, "background": true},
+		{"name": "VisitAsia", "conditioned": {"yes": 1.0, "no": 0.0}, "background": true},
+		{"name": "XRay", "conditioned": {"yes": 1.0, "no": 0.0}, "background": true},
+		{"name": "Tuberculosis", "conditioned": {"yes": 1.0, "no": 0.0}, "background": true},
+		{"name": "Dyspnea", "conditioned": {"yes": 0.8, "no": 0.2}, "background": true},
+		{"name": "Bronchitis", "background": true},
+		{"name": "Dyspnea", "background": true},
+		{"name": "TbOrCa", "background": true}
+	],
+	
+	"target":[
+		{"name": "Cancer", "state": "yes"},
+		{"name": "Bronchitis", "state": "yes"}
+	],
+	
+	"_comment": "first evidence-target settings reflects (two interacting Common-effects + diamond); And the second settings reflects (a common-effect + diamond)",
+	
+	"verbosity": "long"
+}

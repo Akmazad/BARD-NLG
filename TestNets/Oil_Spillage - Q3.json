@@ -1,0 +1,13 @@
+{
+	"netPath": "Oil_Spillage.cmp",
+	"nodes": [
+		{"name": "Spillage", "conditioned": {"True": 0.0, "False": 1.0}, "background": false},
+		{"name": "West company", "conditioned": {"True": 1.0, "False": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "North company", "state": "True"}
+	],
+	
+	"verbosity": "long"
+}

@@ -1,0 +1,15 @@
+{
+	"netPath": "Kernel_Error.cmp",
+	"nodes": [
+		{"name": "Venus failure1", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "Your Kernel Error", "conditioned": {"True": 1.0, "False": 0.0}, "background": false}
+	],
+	
+	"target":[
+		{"name": "Server overheats", "state": "True"}
+	],
+	
+	"_comment": "",
+	
+	"verbosity": "long"
+}

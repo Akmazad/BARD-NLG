@@ -1,0 +1,17 @@
+{
+	"netPath": "./Cyberattack2.cmp",
+	"nodes": [
+		{"name": "M4_1", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "M4", "conditioned": {"True": 0.0, "False": 1.0}, "background": false},
+		{"name": "M3", "conditioned": {"True": 0.0, "False": 1.0}, "background": false},
+		{"name": "M6", "conditioned": {"True": 0.0, "False": 1.0}, "background": false},
+		{"name": "M6_1", "conditioned": {"True": 1.0, "False": 0.0}, "background": false},
+		{"name": "M5", "conditioned": {"True": 0.0, "False": 1.0}, "background": false}
+	],
+	
+	"target": [
+	{"name": "M9", "state": "Silver_Phalanx"}
+	],
+	"_comment": "this evidence-target settings reflects two non-interacting Common-effects",
+	"verbosity": "long"
+}
