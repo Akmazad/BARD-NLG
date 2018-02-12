@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import BARD_NLG.TextGenerator_Az;
+import Bard.NLG.TextGenerator_Az;
 
 import static Bard.NLG.Generator.NodeInfo.DIRECTION.DECREASE;
 import static Bard.NLG.Generator.NodeInfo.DIRECTION.INCREASE;

@@ -27,18 +27,18 @@ public class NodeInfo implements JSONString {
 
     public final boolean isEvidence;
 
-//    public final boolean isTarget;
+    public final boolean isUltimateTarget;
 
     // --- --- --- Constructor
 
-    public NodeInfo(String nodeID, String nodeName, String stateName, double prior, double posterior, boolean isEvidence, boolean isTarget) {
+    public NodeInfo(String nodeID, String nodeName, String stateName, double prior, double posterior, boolean isEvidence, boolean isUltimateTarget) {
         this.nodeID = nodeID;
         this.nodeName = nodeName;
         this.stateName = stateName;
         this.prior = prior;
         this.posterior = posterior;
         this.isEvidence = isEvidence;
-//        this.isTarget = isTarget;
+        this.isUltimateTarget = isUltimateTarget;
     }
 
     // --- --- --- Getters
@@ -111,7 +111,7 @@ public class NodeInfo implements JSONString {
                 "nodeID", "nodeName",
                 "stateName",
                 "prior", "posterior",
-                "isEvidence"//, "isTarget"
+                "isEvidence", "isUltimateTarget"
         };
 
         return new JSONObject(this, fields).toString();
@@ -124,7 +124,7 @@ public class NodeInfo implements JSONString {
         double prior = obj.getDouble("prior");
         double posterior = obj.getDouble("posterior");
         boolean isEv = obj.getBoolean("isEvidence");
-        boolean isTarget = obj.getBoolean("isTarget");
-        return new NodeInfo(nodeID, nodeName, stateName, prior, posterior, isEv, isTarget);
+        boolean isUltimateTarget = obj.getBoolean("isUltimateTarget");
+        return new NodeInfo(nodeID, nodeName, stateName, prior, posterior, isEv, isUltimateTarget);
     }
 }
