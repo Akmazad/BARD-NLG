@@ -1,5 +1,6 @@
-package Bard.NLG.Segment;
+package Bard.NLG;
 
+import Bard.NLG.Segment.Analyser;
 import Bard.NLG.Tools;
 
 import java.nio.charset.Charset;
