@@ -99,7 +99,7 @@ public class BaseModule {
 	 * @param args
 	 */
 	public String runNLG(JSONObject config) throws Exception {
-		return runNLG(new Net(config.getString("netPath")), config);
+		return runNLG(new Net("C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\"+config.getString("netPath")), config);
 	}
 	private static ArrayList<ArrayList<String>> CreatblockedNodeInfoList() throws Exception {
 		ArrayList<ArrayList<String>> retList = new ArrayList<>();

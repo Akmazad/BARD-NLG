@@ -44,7 +44,7 @@ public class MainSingle {
 			
 			
 			// Testing Problems for IARPA
-			// filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Black_Site - Q1.json";		// SB-DB O.K. -- NLG text: SB-DB analyses of Segment 2 are wrong
+			filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Black_Site - Q1.json";		// SB-DB O.K. -- NLG text: SB-DB analyses of Segment 2 are wrong
 			// filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Black_Site - Q2.json";			// SB should include TRC12Test (i.e. Radar Report) in Segment 2 check with Ingrid
 			
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Cyberattack - Q1.json";			// SB-DB O.K. -- NLG text O.K.
@@ -109,7 +109,7 @@ public class MainSingle {
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\temp0-1.json";
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\temp0-28.json";
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\temp1-1.json";
-			filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\temp1-5.json";
+			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\temp1-5.json";
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\temp2-1.json";
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\temp3-3.json";
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\temp6-4.json";
@@ -129,7 +129,8 @@ public class MainSingle {
             
 			
 			try {
-				//System.out.println(config.getString("netPath"));
+				//System.err.println(config.getString("netPath"));
+				//System.out.println(bm.runNLG(config));
 				System.out.println(bm.runNLG(config));
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
