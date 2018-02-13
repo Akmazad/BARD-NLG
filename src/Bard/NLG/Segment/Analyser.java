@@ -62,7 +62,7 @@ public class Analyser extends Graph.Builder {
 
             // --- --- --- STEP 3: REMOVING DUPLICATED BRANCHES/HANDLING LOOPS
             // --- A) Detect the loops.
-            // WARNING: translation of the "old" scala version. New algo needed. This is dirty.
+            // WARNING: translation of the "old" scala version. New algo is ongoing research.
             List<PathTreeNode> myTrees = separate_old(graph, tree);
             // --- B) Postifx run & filter duplicated and evidences
             // WARNING: removing duplicated -> this is how we deal right now with triangles...
@@ -83,13 +83,16 @@ public class Analyser extends Graph.Builder {
             Set<Node> targetSet = new HashSet<>();
             List<Segment> orderedSegments = new ArrayList<>();
 
+            // --- For each MB, removes previous target
             myOrderedMB.forEach(mb -> {
                 // --- Remove previous targets
                 Segment s = mb.remove(targetSet);
                 // --- Extends the accumulator:
                 targetSet.add(s.target);
-                // --- Extends the list, in the good order == add front
-                orderedSegments.add(0, s);
+                // --- Extends the list, in the good order == add front, if non empty
+                if(s.size() > 1) {
+                    orderedSegments.add(0, s);
+                }
             });
 
             log("\nFinal segments:");
