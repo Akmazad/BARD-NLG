@@ -23,4 +23,6 @@ hs_err_pid*
 
 # Ini files
 *.ini
+
+/out/
 /bin/
