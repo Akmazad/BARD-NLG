@@ -44,7 +44,7 @@ public class MainSingle {
 			
 			
 			// Testing Problems for IARPA
-			filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Black_Site - Q1.json";		// SB-DB O.K. -- NLG text: SB-DB analyses of Segment 2 are wrong
+			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Black_Site - Q1.json";		// SB-DB O.K. -- NLG text: SB-DB analyses of Segment 2 are wrong
 			// filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Black_Site - Q2.json";			// SB should include TRC12Test (i.e. Radar Report) in Segment 2 check with Ingrid
 			
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Cyberattack - Q1.json";			// SB-DB O.K. -- NLG text O.K.
@@ -71,7 +71,7 @@ public class MainSingle {
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\The_Spider - Q2.json";		// SB-DB look different
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\The_Spider - Q3.json";		// SB-DB O.K.
 			
-			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Spy_messaging - Q1.json";			// SB-DB O.K. -- NLG text O.K.
+			filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Spy_messaging - Q1.json";			// SB-DB O.K. -- NLG text O.K.
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Spy_messaging - Q2.json";			// SB-DB O.K. -- NLG text O.K.
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Spy_messaging - Q3.json";			// SB-DB O.K. -- NLG text O.K.
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Spy_messaging - Q4.json";		// SB-DB O.K. -- NLG TEXT O.K.

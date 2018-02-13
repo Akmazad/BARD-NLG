@@ -32,7 +32,7 @@ public class MainBatch {
 	public static void main(String[] args) {
 		//Object obj = parser.parse(new FileReader("f:\\test.json"));
 		
-		Tools.loggerOn();
+		//Tools.loggerOn();
 
 		BaseModule bm = new BaseModule();
 		String[] fileArr = new String[33];

@@ -2,7 +2,7 @@ package Bard.NLG.Printer;
 
 public class PrinterHelper {
 
-    public static String cssString = "<style>\n" +
+    public static String cssString ="";/* "<style>\n" +
             "@import url('https://fonts.googleapis.com/css?family=Open+Sans');\n" +
             "\n" +
             "body {\n" +
@@ -113,6 +113,6 @@ public class PrinterHelper {
             ".nodeQuery::before {\n" +
             "  background-color: #E53935;\n" +
             "}\n" +
-            "</style>\n";
+            "</style>\n";*/
 
 }
