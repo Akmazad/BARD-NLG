@@ -262,8 +262,8 @@ public class TextGenerator_Az {
 		
 		String opDir = SayOpposite(direction,_nodeInfoList_2);
 		retStr += ( "Observing " + SayImply(_nodeInfoList_1, _targetNodeInfo, direction, ""));
-		retStr += SayContradict() + "then observing "; 
-		//retStr += "observing that "; 
+		//retStr += SayContradict() + "then observing "; 
+		retStr += "In light of this, "; 
 		if(impactChange != 0) {
 			retStr += (SayImply(_nodeInfoList_2, _targetNodeInfo, opDir, "however"));
 			ArrayList<ArrayList<String>> emptyNodeList_for_NO_effect_through_CPT = new ArrayList<>();

@@ -29,12 +29,12 @@ public class MainSingle {
 			//Object obj = parser.parse(new FileReader("f:\\test.json"));
 
 			BaseModule bm = new BaseModule();
-			
+			Tools.loggerOn();
 			//Object obj = parser.parse(new FileReader("C:\\\\Users\\\\aazad\\\\Google Drive\\\\BARD-NLG Team [private]\\\\BN_NLG_Report_Generation\\\\ChestClinic.json"));
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Cyberattack2.json";
 			// filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\ChestClinic.json";
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\ChestClinic - Copy.json";
-			// filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\ChestClinic_noEvidence.json";
+			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\ChestClinic_noEvidence.json";
 			// filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\MetaStaticCancer.json";
 			// filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\DrugCheat.json";
 			// filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\spyMessaging.json";
@@ -67,11 +67,11 @@ public class MainSingle {
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Oil_Spillage - Q3.json";		// SB-DB O.K. -- NLG TEXT O.K.
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Oil_Spillage - Q4.json";			// issues: 1) Segment 1 is not having "West Company"; 2) SB-DB batches aren't correct for segment 2
 			
-			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\The_Spider - Q1.json";		// SB-DB O.K. -- NLG TEXT O.K. --NLG is a bit enhanced looking
+			filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\The_Spider - Q1.json";		// SB-DB O.K. -- NLG TEXT O.K. --NLG is a bit enhanced looking
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\The_Spider - Q2.json";		// SB-DB look different
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\The_Spider - Q3.json";		// SB-DB O.K.
 			
-			filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Spy_messaging - Q1.json";			// SB-DB O.K. -- NLG text O.K.
+			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Spy_messaging - Q1.json";			// SB-DB O.K. -- NLG text O.K.
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Spy_messaging - Q2.json";			// SB-DB O.K. -- NLG text O.K.
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Spy_messaging - Q3.json";			// SB-DB O.K. -- NLG text O.K.
 			//filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Spy_messaging - Q4.json";		// SB-DB O.K. -- NLG TEXT O.K.
