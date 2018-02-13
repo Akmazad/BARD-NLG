@@ -91,7 +91,7 @@ public class BaseModule {
 
     private static double epsilon = 0.001;
 
-    String filename = "";
+    Path jsonPath = null;
 
 
     public BaseModule() {
@@ -100,9 +100,10 @@ public class BaseModule {
 
 
     public String runNLG(JSONObject config, Path p) throws Exception {
-        filename = config.getString("netPath");
+        String filename = config.getString("netPath");
         Path netPath = p.getParent().resolve(filename);
-        System.out.println(netPath);
+        System.err.println(netPath);
+        jsonPath = p;
 
         return runNLG(new Net(netPath.toString()), config);
     }
@@ -180,6 +181,41 @@ public class BaseModule {
         DecimalFormat df = new DecimalFormat("#.#"); // 1-decimal point
         df.setRoundingMode(RoundingMode.CEILING);
 
+        /*
+         * the conditionedNodeList needs to backed up since it gets changed over the
+         * course of generating explanations for a single target
+         */
+
+        backupConditionedList = new Hashtable<>(conditionedNodeList);
+        allBNnodes = FindAllBNnodes();
+
+        // =======================
+        // get ultimate prior and ultimate posteriori for all the nodes
+        /* Also, get rid of the blocked nodes */
+        _net.clearAllEvidence();
+        _net.compile();
+        saveOriginalBeleifsofAllNodes("prior");
+        set_findings_of_ConditionedNodes_3(conditionedNodeList, MakeNodeList(conditionedNodeList)); // this will
+        // help to find
+        // and get rid
+        // of
+        // d-separeted
+        // evidences (in
+        // the context
+        // of querynode)
+        // from the list
+        saveOriginalBeleifsofAllNodes("posterior");
+
+        semanticStates = GetSemanticStatesBN(); //
+        explainableStates = GetExplainableStatesBN(conditionedNodeList, targetList); // for evidence-target nodes, states will be picked from the JSONobject,
+        // otherwise: True/Yes, or the state at the zero index
+
+
+        _net.clearAllEvidence();
+        _net.compile();
+        // ========================
+
+        
         /* Response for case where NO EVIDENCE info provided */
         if (conditionedNodeList.size() == 0) {
             boolean adjectiveProb = true;
@@ -233,6 +269,8 @@ public class BaseModule {
                 for (ArrayList<String> qNodeInfo : targetList) {
                     String bnText = getTextforBNstructure(fake_it_Philip, fake_conditionedNodeList, qNodeInfo.get(0), conditionedNodeList, _BNgraph);
                     FinalOutputString += "<h1 class=\"target\">Target(s): " + escapeHtml(qNodeInfo.get(0)) + "</h1>\n <div class=\"summary\"> \n <h1>Summary</h1>\n" + escapeHtml(FinalOutputString) + bnText + "</div>";
+                    // Re initialize all the global variables
+                    re_InitializeGlobalVariable();
                 }
                 // --------------------- End -------------------------------------------
 
@@ -242,40 +280,7 @@ public class BaseModule {
             return FinalOutputString;
         }
 
-        /*
-         * the conditionedNodeList needs to backed up since it gets changed over the
-         * course of generating explanations for a single target
-         */
-
-        backupConditionedList = new Hashtable<>(conditionedNodeList);
-        allBNnodes = FindAllBNnodes();
-
-        // =======================
-        // get ultimate prior and ultimate posteriori for all the nodes
-        /* Also, get rid of the blocked nodes */
-        _net.clearAllEvidence();
-        _net.compile();
-        saveOriginalBeleifsofAllNodes("prior");
-        set_findings_of_ConditionedNodes_3(conditionedNodeList, MakeNodeList(conditionedNodeList)); // this will
-        // help to find
-        // and get rid
-        // of
-        // d-separeted
-        // evidences (in
-        // the context
-        // of querynode)
-        // from the list
-        saveOriginalBeleifsofAllNodes("posterior");
-
-        semanticStates = GetSemanticStatesBN(); //
-        explainableStates = GetExplainableStatesBN(conditionedNodeList, targetList); // for evidence-target nodes, states will be picked from the JSONobject,
-        // otherwise: True/Yes, or the state at the zero index
-
-
-        _net.clearAllEvidence();
-        _net.compile();
-        // ========================
-
+        
         // Work-in-Progress for each target node
         List<String> JsonOutPutList = new ArrayList<String>();
 
@@ -287,7 +292,7 @@ public class BaseModule {
             queryNode = targetList.get(i).get(0);
             queryNodeState = targetList.get(i).get(1);
 
-            // Re initialize all the global variables
+         // Re initialize all the global variables
             re_InitializeGlobalVariable();
 
             conditionedNodeList = Find_UnBlocked_Evidence_Nodes(queryNode, _BNgraph, conditionedNodeList);
@@ -380,64 +385,7 @@ public class BaseModule {
 //			FinalOutputString += System.getProperty("line.separator").toString();
         }
 
-        BufferedWriter bw = null;
-////		try {
-////			String filePathforJson = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\Matt-Az Interfacing [Gamma1]\\output_JSON_Files_including_3Nations [18th Jan]\\";
-////			//filePathforJson += (getFileNameWithoutExtension(new File(NLG.filename)) + "_NLG_Explanation.txt");
-////			filePathforJson += (getFileNameWithoutExtension(new File(NLG_Az.filename)) + ".json");
-////			File oFile = new File(filePathforJson);
-////
-////			/* This logic will make sure that the file
-////			 * gets created if it is not present at the
-////			 * specified location*/
-////			if (!oFile.exists()) {
-////				oFile.createNewFile();
-////			}
-////
-////			FileWriter fw = new FileWriter(oFile);
-////			bw = new BufferedWriter(fw);
-////			for(int i = 0; i < JsonOutPutList.size(); i++)
-////				bw.write(JsonOutPutList.get(i));
-////		} catch (IOException ioe) {
-////			ioe.printStackTrace();
-////		}
-////		finally
-////		{
-////			try{
-////				if(bw!=null)
-////					bw.close();
-////			}catch(Exception ex){
-////				System.out.println("Error in closing the BufferedWriter"+ex);
-////			}
-////		}
-//
-        bw = null;
-        try {
-            String filePathforJson = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\Matt-Az Interfacing [Gamma1]\\output_Explanation_Files [New 13 Level 0 (integrated with Matt's Java Code)]\\";
-            filePathforJson += (getFileNameWithoutExtension(new File(filename)) + "_NLG_Explanation.html");
-            File oFile = new File(filePathforJson);
 
-            /* This logic will make sure that the file
-             * gets created if it is not present at the
-             * specified location*/
-            if (!oFile.exists()) {
-                oFile.createNewFile();
-            }
-
-            FileWriter fw = new FileWriter(oFile);
-            bw = new BufferedWriter(fw);
-
-            bw.write(FinalOutputString);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        } finally {
-            try {
-                if (bw != null)
-                    bw.close();
-            } catch (Exception ex) {
-                System.out.println("Error in closing the BufferedWriter" + ex);
-            }
-        }
 
         return FinalOutputString;
     }
