@@ -91,14 +91,19 @@ public class BaseModule {
 
     private static double epsilon = 0.001;
 
+    String filename = "";
+
 
     public BaseModule() {
         // TODO Auto-generated constructor stub
     }
 
+
     public String runNLG(JSONObject config, Path p) throws Exception {
-        Path netPath = p.getParent().resolve(config.getString("netPath"));
+        filename = config.getString("netPath");
+        Path netPath = p.getParent().resolve(filename);
         System.out.println(netPath);
+
         return runNLG(new Net(netPath.toString()), config);
     }
 
@@ -221,7 +226,17 @@ public class BaseModule {
 
             /* customizing this for long verbosity*/
             if (verbosity.equals("long")) {
-                FinalOutputString = "<h1 class=\"target\">Target(s): " + escapeHtml(getTargetNodeNames(targetList)) + "</h1>\n <div class=\"summary\"> \n <h1>Summary</h1>\n" + escapeHtml(FinalOutputString) + "</div>";
+                //------------------- Text for BN structure + Probability Tables [with FAKE evidence for all nodes]
+                Hashtable fake_conditionedNodeList = makeFakeConditionedNodeList(targetList, conditionedNodeList);
+                boolean fake_it_Philip = true;
+                //String bnText = "";
+                for (ArrayList<String> qNodeInfo : targetList) {
+                    String bnText = getTextforBNstructure(fake_it_Philip, fake_conditionedNodeList, qNodeInfo.get(0), conditionedNodeList, _BNgraph);
+                    FinalOutputString += "<h1 class=\"target\">Target(s): " + escapeHtml(qNodeInfo.get(0)) + "</h1>\n <div class=\"summary\"> \n <h1>Summary</h1>\n" + escapeHtml(FinalOutputString) + bnText + "</div>";
+                }
+                // --------------------- End -------------------------------------------
+
+                //FinalOutputString += "<h1 class=\"target\">Target(s): " + escapeHtml(getTargetNodeNames(targetList)) + "</h1>\n <div class=\"summary\"> \n <h1>Summary</h1>\n" + escapeHtml(FinalOutputString) + bnText + "</div>";
             }
 
             return FinalOutputString;
@@ -329,51 +344,26 @@ public class BaseModule {
 
             // --------------------- Generate Summary [end] ------------------------
 
-            //// code for only getting the whole BN structure (preamble of detailed part) with FAKE evidence for all nodes
+            //------------------- Text for BN structure + Probability Tables [with FAKE evidence for all nodes]
             Hashtable fake_conditionedNodeList = makeFakeConditionedNodeList(targetList, conditionedNodeList);
             boolean fake_it_Philip = true;
 
-            // add fake node (and edge) to the Agena BN: it helps to allow more paths to be free (i.e. d-connected)
-            if (fake_it_Philip) {        // fake detail analysis: to get the whole BN
-                Node[] bnNodes = _net.getNodes();
-                int j = 0;
-                for (Node node : bnNodes) {
-                    if (node.getParents().length >= 2) {
-                        String fakeNodeName = "ubgs92jh_" + j;        // ubgs92jh = fake nodeName initial
-                        Node tempNode = _net.addNode(fakeNodeName, new String[]{"True", "False"});
-                        tempNode.addParent(net.getNode(node.getShortName()));
-                    }
-                    j++;
-                }
-
-
-                Analyser a = new Analyser();
-                MakeBNforMH(_net, fake_conditionedNodeList, queryNode, a);
-
-                List<RawSegment> fake_orderedSegmentList = a.getRawSegments(); // replace this MH1 function name with Matt's
-                List<Segment> fake_orderedSegmentListForNLG = ReConstructSegmentForNLG(conditionedNodeList, fake_orderedSegmentList, semanticStates,
-                        explainableStates, fake_conditionedNodeList, "perc_change", _BNgraph, fake_it_Philip);
-                TextGenerator fake_tg = new TextGenerator(fake_orderedSegmentListForNLG, fake_it_Philip);
-                outputResponse_for_A_Target += fake_tg.getText().replace("<br>", "");
-
-                bnNodes = _net.getNodes();
-                for (Node node : bnNodes) {
-                    if (node.getShortName().startsWith("ubgs92jh")) {        // ubgs92jh = fake nodeName initial
-                        node.remove();
-                    }
-                    j++;
-                }
+            if (fake_it_Philip) {
+                outputResponse_for_A_Target += getTextforBNstructure(fake_it_Philip, fake_conditionedNodeList, queryNode, conditionedNodeList, _BNgraph);
             }
+            // --------------------- End -------------------------------------------
 
+
+            // --------------------- Reasoning steps -------------------------------
             fake_it_Philip = false;
             fake_conditionedNodeList.clear();
-            // real detail analysis
+
             if (conditionedNodeList.size() > 0) {
                 set_findings_of_ConditionedNodes_3(conditionedNodeList, MakeNodeList(conditionedNodeList));
                 outputResponse_for_A_Target += System.getProperty("line.separator").toString();
                 outputResponse_for_A_Target += System.getProperty("line.separator").toString();
-//					outputResponse_for_A_Target += "Now we are going to look at how the evidence affects the probabilities along the paths to the variable " + queryNode
-//							+ ". Please note that all the conclusions are in light of all the available evidence." + System.getProperty("line.separator").toString();
+                //					outputResponse_for_A_Target += "Now we are going to look at how the evidence affects the probabilities along the paths to the variable " + queryNode
+                //							+ ". Please note that all the conclusions are in light of all the available evidence." + System.getProperty("line.separator").toString();
                 outputResponse_for_A_Target += System.getProperty("line.separator").toString();
                 ArrayList<String> chainList = PareseChainList(d_connectedPaths);
                 Analyser a = new Analyser();
@@ -424,7 +414,7 @@ public class BaseModule {
         bw = null;
         try {
             String filePathforJson = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\Matt-Az Interfacing [Gamma1]\\output_Explanation_Files [New 13 Level 0 (integrated with Matt's Java Code)]\\";
-         //   filePathforJson += (getFileNameWithoutExtension(new File(MainBatch.filename)) + "_NLG_Explanation.html");
+            filePathforJson += (getFileNameWithoutExtension(new File(filename)) + "_NLG_Explanation.html");
             File oFile = new File(filePathforJson);
 
             /* This logic will make sure that the file
@@ -450,6 +440,44 @@ public class BaseModule {
         }
 
         return FinalOutputString;
+    }
+
+    private String getTextforBNstructure(boolean fake_it_Philip, Hashtable fake_conditionedNodeList, String queryNode,
+                                         Hashtable conditionedNodeList, Graph _BNgraph) throws Exception {
+        String retStr = "";
+
+        // add fake node to the Agena BN: it helps to allow more paths to be free (i.e. d-connected)
+        // fake detail analysis: to get the whole BN
+        Node[] bnNodes = _net.getNodes();
+        int j = 0;
+        for (Node node : bnNodes) {
+            if (node.getParents().length >= 2) {
+                String fakeNodeName = "ubgs92jh_" + j;        // ubgs92jh = fake nodeName initial
+                Node tempNode = _net.addNode(fakeNodeName, new String[]{"True", "False"});
+                tempNode.addParent(_net.getNode(node.getShortName()));
+            }
+            j++;
+        }
+
+
+        Analyser a = new Analyser();
+        MakeBNforMH(_net, fake_conditionedNodeList, queryNode, a);
+
+        List<RawSegment> fake_orderedSegmentList = a.getRawSegments();
+        List<Segment> fake_orderedSegmentListForNLG = ReConstructSegmentForNLG(conditionedNodeList, fake_orderedSegmentList, semanticStates,
+                explainableStates, fake_conditionedNodeList, "perc_change", _BNgraph, fake_it_Philip);
+        TextGenerator fake_tg = new TextGenerator(fake_orderedSegmentListForNLG, fake_it_Philip);
+        retStr += fake_tg.getText().replace("<br>", "");
+
+        // ----- Remove Fake nodes that were created before
+        bnNodes = _net.getNodes();
+        for (Node node : bnNodes) {
+            if (node.getShortName().startsWith("ubgs92jh")) {        // ubgs92jh = fake nodeName initial
+                node.remove();
+            }
+            j++;
+        }
+        return retStr;
     }
 
     private String getTargetNodeNames(ArrayList<ArrayList<String>> targetList) {

@@ -1,9 +1,11 @@
 package Bard.NLG;
 import org.json.JSONObject;;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.io.File;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -160,9 +162,6 @@ public class MainBatch {
 		// filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Pearl Burglary Alarm Problem.json";
 		// filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Three Nations Problem.json"; // error in new algo too: "SHOULD NOT HAPPEN: Common Effect, causal direction; There is a bug in our program, please contact us!"
 
-
-        */
-
-
+*/
 }
 
