@@ -1,40 +1,88 @@
 package Bard.NLG;
-import org.json.JSONObject;
-import org.json.JSONException;
+import org.json.JSONObject;;
 
-import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.io.File;
 
-//import org.json.simple.JSONArray;
-//import org.json.simple.JSONObject;
-//import org.json.simple.parser.JSONParser;
-//import org.json.simple.parser.ParseException;
-
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Iterator;
-
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MainBatch {
-	public static String filename = "";
-	public MainBatch() {
-		// TODO Auto-generated constructor stub
-	}
-
-	public static JSONObject parseJSONFile(String filename) throws JSONException, IOException {
-		String content = new String(Files.readAllBytes(Paths.get(filename)));
-		return new JSONObject(content);
-	}
 
 	public static void main(String[] args) {
-		//Object obj = parser.parse(new FileReader("f:\\test.json"));
-		
-		Tools.loggerOn();
 
-		BaseModule bm = new BaseModule();
+        Tools.loggerOn();
+
+	    // Test arg number
+	    if(args.length != 1){
+	        Tools.logError("Provide the path to testing files");
+        }
+
+        // Get path from arg and test if it is a directory
+        Path dirPath = Paths.get(args[0]);
+
+	    if(!Files.isDirectory(dirPath)){
+	        Tools.logError(dirPath + ": not a directory");
+        }
+
+        // Will contains all the file to take care of
+        List<Path> paths = Stream.of(
+                    "Black_Site - Q1.json",
+                    // "Black_Site - Q2.json",
+                    // "Cyberattack - Q1.json",
+                    // "Cyberattack - Q2.json",
+                    // "Cyberattack - Q4.json",
+                    // "Cyberattack - Q5.json",
+                    // "Evidence Chain Model - Q1.json",
+                    // "Evidence Chain Model - Q2.json",
+                    // "Kernel_Error - Q1.json",
+                    // "Kernel_Error - Q2.json",
+                    // "Kernel_Error - Q3.json",
+                    // "Kernel_Error - Q4.json",
+                    // "Kernel_Error - Q5.json",
+                    // "Kernel_Error - Q6.json",
+                    // "Oil_Spillage - Q1.json",
+                    // "Oil_Spillage - Q2.json",
+                    // "Oil_Spillage - Q3.json",
+                    // "Oil_Spillage - Q4.json",
+                    // "Spy_messaging - Q1.json",
+                    // "Spy_messaging - Q2.json",
+                    // "Spy_messaging - Q3.json",
+                    // "Spy_messaging - Q4.json",
+                    // "Spy_messaging - Q5.json",
+                    // "The_Spider - Q1.json",
+                    // "The_Spider - Q2.json",
+                    // "The_Spider - Q3.json",
+                    // "Three Nations Problem.json",
+                    ""
+            ).filter(p->!p.equals("")).map(dirPath::resolve).collect(Collectors.toList());
+
+	    // Create the base module & go through the files
+        BaseModule bm = new BaseModule();
+
+        for(Path p : paths){
+            try {
+                // Get the json object for the file
+                String content = new String(Files.readAllBytes(p));
+                JSONObject config = new JSONObject(content);
+                //Calling the base module
+                bm.runNLG(config, p);
+            } catch(Exception e) {
+                e.printStackTrace();
+                Tools.logError(e.getMessage());
+            }
+
+        }
+    }
+
+
+
+
+
+        /*
+
 		String[] fileArr = new String[33];
 
 		//Object obj = parser.parse(new FileReader("C:\\\\Users\\\\aazad\\\\Google Drive\\\\BARD-NLG Team [private]\\\\BN_NLG_Report_Generation\\\\ChestClinic.json"));
@@ -113,28 +161,8 @@ public class MainBatch {
 		// filename = "C:\\Users\\aazad\\Google Drive\\BARD-NLG Team [private]\\BN_NLG_Report_Generation\\Three Nations Problem.json"; // error in new algo too: "SHOULD NOT HAPPEN: Common Effect, causal direction; There is a bug in our program, please contact us!"
 
 
-		for(int i = 0; i < fileArr.length; i++) {
-			try {
-				filename = fileArr[i];
-				JSONObject config = parseJSONFile(filename);
-				try {
-					//System.out.println(config.getString("netPath"));
-					//System.out.println(bm.runNLG(config));
-					System.out.println("fileProcessed: " + filename);
-					bm.runNLG(config);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+        */
 
-
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
 
 }
 
