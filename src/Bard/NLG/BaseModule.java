@@ -282,11 +282,9 @@ public class BaseModule {
 
     private String getTextforBNstructure(boolean fake_it_Philip, Hashtable fake_conditionedNodeList, String queryNode, Hashtable conditionedNodeList, Graph _BNgraph) throws Exception {
         String retStr = "";
-
-        // add fake node to the Agena BN: it helps to allow more paths to be free (i.e. d-connected)
         Node[] bnNodes = _net.getNodes();
         int j = 0;
-        for (Node node : bnNodes) {
+        for (Node node : bnNodes) {        // add fake node to the Agena BN: it helps to allow more paths to be free (i.e. d-connected)
             if (node.getParents().length >= 2) {
                 String fakeNodeName = "ubgs92jh_" + j;        // ubgs92jh = fake nodeName initial
                 Node tempNode = _net.addNode(fakeNodeName, new String[]{"True", "False"});
@@ -294,7 +292,6 @@ public class BaseModule {
             }
             j++;
         }
-
 
         //--- Reuse segment analysis and TextGenerator code for getting Texts for whole BN structure as "Global Preamble"
         Analyser a = new Analyser();
@@ -448,12 +445,9 @@ public class BaseModule {
      */
     private List<Segment> ReConstructSegmentForNLG(Hashtable conditionedNodeList, List<RawSegment> orderedSegmentList, Map<String, String> semanticStates, Map<String, String> explainableStates, Hashtable fake_conditionedNodeList, String impactChoice, Graph _BNGraph, boolean fake_it_Philip) throws Exception {
         List<Segment> retList = new ArrayList<>();
-
         for (RawSegment rawSeg : orderedSegmentList) {
-
             // add all the things that need to be added in the NLG segment            // do the impact analysis of a segment to find SB and DB with respective impact values
             List<String> segOtherNodeList = FindNodesInAsegment(rawSeg);
-
             Map<String, Map<Set<String>, Double>> SB_DB_infos = new HashMap<String, Map<Set<String>, Double>>();
             if (!fake_it_Philip)							// Do impact analysis for Real
                 SB_DB_infos = impactAnalysisOfAsegment(rawSeg.target, segOtherNodeList, semanticStates, explainableStates, conditionedNodeList, impactChoice, _BNGraph);
@@ -520,13 +514,10 @@ public class BaseModule {
             prior_prob = 0.5;
             posterior_prob = 0.5;
         }
- 
         boolean isEvidence = (conditionedNodeList.containsKey(oSegNode)) ? true : false;
         boolean isTarget = false;
-
         NodeInfo nodeInfo = new NodeInfo(oSegNode, oSegNode, state_Name, prior_prob, posterior_prob, isEvidence, isTarget); // nodeID = nodeName Now
         return nodeInfo;
-
     }
 
     private NodeInfo ConstructTargetNodeInfo(String target, Map<String, String> semanticStates, Map<String, String> explainableStates, Hashtable conditionedNodeList, boolean fake_it_Philip) throws Exception {
@@ -542,7 +533,6 @@ public class BaseModule {
         }
         boolean isEvidence = (conditionedNodeList.containsKey(target)) ? true : false;
         boolean isTarget = (ultimateTargetNode.equals(target)) ? true : false;
-
         NodeInfo nodeInfo = new NodeInfo(target, target, state_name, prior_prob, posterior_prob, isEvidence, isTarget); // nodeID = nodeName now
         return nodeInfo;
     }
@@ -864,10 +854,7 @@ public class BaseModule {
         return 0;
     }
  
-    private static HashMap<Hashtable<Node[], Double>, Hashtable<Node[], Hashtable<String, ArrayList<String>>>> ContentSelectionFor_NLG_report(
-            Hashtable conditionedNodeList, String queryNode, String queryNodeState, Graph _BNgraph, String impactChoice)
-            throws Exception {
-
+    private static HashMap<Hashtable<Node[], Double>, Hashtable<Node[], Hashtable<String, ArrayList<String>>>> ContentSelectionFor_NLG_report(Hashtable conditionedNodeList, String queryNode, String queryNodeState, Graph _BNgraph, String impactChoice) throws Exception {
         Node[][] allSubsetsOfEvidenceNodes = generateRelevantSubsets(MakeNodeList(conditionedNodeList), queryNode, conditionedNodeList, _BNgraph);
         Hashtable<Node[], Double> ImpactValuesofSubsets = new Hashtable<Node[], Double>();
         for (int iter = 0; iter < allSubsetsOfEvidenceNodes.length; iter++) {
