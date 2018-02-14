@@ -49,14 +49,14 @@ public class BaseModule {
     private static String ultimateTargetNode = "";
     private static String ultimateTargetNodeState = "";
     private static String outputResponse_for_A_Target = "";
-    private static TextGenerator_Az NLGtext = new TextGenerator_Az();
+    private static TextGenerator_Az NLGtext_Az = new TextGenerator_Az();
     private static Map<String, String> semanticStates = new HashMap();
     private static Map<String, String> explainableStates = new HashMap<>();
     private static Net _net;
     private static double epsilon = 0.001;
     Path jsonPath = null;
 
-    // ------- Wrapper function for main running NLG 
+    // ------- Wrapper function for running main NLG function 
     public String runNLG(JSONObject config, Path p) throws Exception {
         String filename = config.getString("netPath");
         Path netPath = p.getParent().resolve(filename);
@@ -65,7 +65,7 @@ public class BaseModule {
         return runNLG(new Net(netPath.toString()), config);
     }
     
-    // ------- Main running NLG
+    // ------- Running NLG function (Main)
     public String runNLG(Net net, JSONObject config) throws Exception {
         _net = net;
 
@@ -144,11 +144,11 @@ public class BaseModule {
                     Double probVal = _net.getNode(targetNode).getBelief(targetNodeState);
                     probVal = ((double) Math.round((probVal) * 1000.0) / 1000.0);
 
-                    probList.add(df.format(probVal * 100.0) + "% (" + NLGtext.PutVerbalWord_Az(probVal, false, adjectiveProb) + ")");
+                    probList.add(df.format(probVal * 100.0) + "% (" + NLGtext_Az.PutVerbalWord_Az(probVal, false, adjectiveProb) + ")");
                 }
                 Double probVal2 = _net.getNode(targetList.get(targetList.size() - 1).get(0)).getBelief(targetList.get(targetList.size() - 1).get(1));
                 probVal2 = ((double) Math.round((probVal2) * 1000.0) / 1000.0);
-                probList.add(df.format(probVal2 * 100.0) + "% (" + NLGtext.PutVerbalWord_Az(probVal2, false, adjectiveProb) + ")");
+                probList.add(df.format(probVal2 * 100.0) + "% (" + NLGtext_Az.PutVerbalWord_Az(probVal2, false, adjectiveProb) + ")");
 
                 if (targetList.size() > 1) {
                     FinalOutputString += "and " + targetList.get(targetList.size() - 1).get(0) + "=" + targetList.get(targetList.size() - 1).get(1) + " are ";
@@ -168,14 +168,20 @@ public class BaseModule {
                 //------------------- Text for BN structure + Probability Tables [with FAKE evidence for all nodes]
                 Hashtable fake_conditionedNodeList = makeFakeConditionedNodeList(targetList, conditionedNodeList);
                 boolean fake_it_Philip = true;
+                String textforallTargets = "";
                 for (ArrayList<String> qNodeInfo : targetList) {
-                    String bnText = getTextforBNstructure(fake_it_Philip, fake_conditionedNodeList, qNodeInfo.get(0), conditionedNodeList, _BNgraph);
-                    FinalOutputString += "<h1 class=\"target\">Target(s): " + escapeHtml(qNodeInfo.get(0)) + "</h1>\n <div class=\"summary\"> \n <h1>Summary</h1>\n" + escapeHtml(FinalOutputString) + bnText + "</div>";
+                    ultimateTargetNode = qNodeInfo.get(0);
+                    ultimateTargetNodeState = qNodeInfo.get(1);
+
+                    //String bnText = getTextforBNstructure(fake_it_Philip, fake_conditionedNodeList, qNodeInfo.get(0), conditionedNodeList, _BNgraph);
+                	String bnText = getTextforBNstructure(backupConditionedList);
+                	textforallTargets += "<h1 class=\"target\">Target: " + escapeHtml(qNodeInfo.get(0)) + "</h1>\n <div class=\"summary\"> \n <h1>Summary</h1>\n" + escapeHtml(FinalOutputString) + bnText + "</div>";
                     re_InitializeGlobalVariable();                    // Re initialize all the global variables
                 }
+                return textforallTargets;
                 // --------------------- End 
-            }
-            return FinalOutputString;
+            }else
+            	return FinalOutputString;									// Base Scenario: Return final texts
         }
 
         
@@ -239,7 +245,8 @@ public class BaseModule {
             Hashtable fake_conditionedNodeList = makeFakeConditionedNodeList(targetList, conditionedNodeList);
             boolean fake_it_Philip = true;
             if (fake_it_Philip)
-                outputResponse_for_A_Target += getTextforBNstructure(fake_it_Philip, fake_conditionedNodeList, queryNode, conditionedNodeList, _BNgraph);
+                //outputResponse_for_A_Target += getTextforBNstructure(fake_it_Philip, fake_conditionedNodeList, queryNode, conditionedNodeList, _BNgraph);
+            	outputResponse_for_A_Target += getTextforBNstructure(backupConditionedList);
             // --------------------- End 
 
             // --------------------- Reasoning steps (for Detailed Explanation only) -------------------------------
@@ -268,7 +275,41 @@ public class BaseModule {
         return FinalOutputString;							// return the final texts (either "summary" or "Detailed" explanation)
     }
    
-    private static ArrayList<ArrayList<String>> CreatblockedNodeInfoList() throws Exception {
+    private String getTextforBNstructure(Hashtable conditionedNodeList) throws Exception{
+		String retStr = "";
+    	ArrayList<String> textsforEachNode = new ArrayList<>();
+    	Set<NodeInfo> allNodeInfoList = new HashSet<>();
+		
+    	
+		for(String bnNode:allBNnodes) {
+			ArrayList<String> nodeNameListStr = new ArrayList<>(); 
+			Arrays.asList(_net.getNode(bnNode).getChildren()).forEach(ni -> nodeNameListStr.add(ni.getShortName()));	
+			if(nodeNameListStr.size() != 0) {
+				String Str = "";
+				if(nodeNameListStr.size() == 1) {
+					Str += (bnNode + " can cause " + nodeNameListStr.get(0));
+				}
+				else if(nodeNameListStr.size() > 1) {
+					Str += (bnNode + " can cause ");
+					for(int i = 0; i < nodeNameListStr.size() - 1; i++) {
+						Str += (nodeNameListStr.get(i) + ", ");
+					}
+					Str = Str.substring(0, Str.length()-2);
+					Str += (" and " + nodeNameListStr.get(nodeNameListStr.size()-1));
+				}
+				
+				textsforEachNode.add(Str);
+			}
+			
+			allNodeInfoList.add(bnNode.equals(ultimateTargetNode) ? ConstructTargetNodeInfo(bnNode, semanticStates, explainableStates, conditionedNodeList): ConstructOtherNodeInfo(bnNode , semanticStates, explainableStates, conditionedNodeList));
+			
+		}
+		
+		TextGenerator tg = new TextGenerator();
+		return tg.printBNTextwithCausalityOnly(textsforEachNode, allNodeInfoList);
+	}
+
+	private static ArrayList<ArrayList<String>> CreatblockedNodeInfoList() throws Exception {
         ArrayList<ArrayList<String>> retList = new ArrayList<>();
         for (String bNode : blockedEvidenceList) {
             ArrayList<String> tempList = new ArrayList<>();
@@ -490,12 +531,12 @@ public class BaseModule {
             Segment nlgSeg = new Segment(rawSeg, SB, SB_impactVal, DB, DB_impactVal);
 
             // add node information for the segment target
-            NodeInfo targetNodeInfo = ConstructTargetNodeInfo(rawSeg.target, semanticStates, explainableStates, conditionedNodeList, fake_it_Philip);
+            NodeInfo targetNodeInfo = ConstructTargetNodeInfo(rawSeg.target, semanticStates, explainableStates, conditionedNodeList);
             nlgSeg.put(rawSeg.target, targetNodeInfo);
 
             // add node information for other nodes in the segment
             for (String oSegNode : segOtherNodeList) {
-                NodeInfo oNinfo = ConstructOtherNodeInfo(oSegNode, semanticStates, explainableStates, conditionedNodeList, fake_conditionedNodeList, fake_it_Philip);
+                NodeInfo oNinfo = ConstructOtherNodeInfo(oSegNode, semanticStates, explainableStates, conditionedNodeList);
                 nlgSeg.put(oSegNode, oNinfo);
             }
             retList.add(nlgSeg);
@@ -503,7 +544,7 @@ public class BaseModule {
         return retList;
     }
 
-    private NodeInfo ConstructOtherNodeInfo(String oSegNode, Map<String, String> semanticStates, Map<String, String> explainableStates, Hashtable conditionedNodeList, Hashtable fake_conditionedNodeList, boolean fake_it_Philip) throws Exception {
+    private NodeInfo ConstructOtherNodeInfo(String oSegNode, Map<String, String> semanticStates, Map<String, String> explainableStates, Hashtable conditionedNodeList) throws Exception {
         String state_Name = explainableStates.get(oSegNode);
         Double prior_prob = 0.0;
         Double posterior_prob = 0.0;
@@ -520,7 +561,7 @@ public class BaseModule {
         return nodeInfo;
     }
 
-    private NodeInfo ConstructTargetNodeInfo(String target, Map<String, String> semanticStates, Map<String, String> explainableStates, Hashtable conditionedNodeList, boolean fake_it_Philip) throws Exception {
+    private NodeInfo ConstructTargetNodeInfo(String target, Map<String, String> semanticStates, Map<String, String> explainableStates, Hashtable conditionedNodeList) throws Exception {
         String state_name = explainableStates.get(target);
         Double prior_prob = 0.0;
         Double posterior_prob = 0.0;
@@ -777,7 +818,7 @@ public class BaseModule {
         ultimateTargetNode = "";
         ultimateTargetNodeState = "";
         outputResponse_for_A_Target = "";
-        NLGtext = new TextGenerator_Az();
+        NLGtext_Az = new TextGenerator_Az();
     }
 
     private static void saveOriginalBeleifsofAllNodes(String bufferName) throws Exception {
@@ -882,7 +923,7 @@ public class BaseModule {
         String retString = "";
         double priorBelief = (double) RetriveProbfromBuffer(queryNode, "prior").get(queryNodeState);
         priorBelief = ((double) Math.round((priorBelief) * 1000.0) / 1000.0);
-        String priorText = NLGtext.SayPrior(queryNode, queryNodeState, priorBelief);
+        String priorText = NLGtext_Az.SayPrior(queryNode, queryNodeState, priorBelief);
 
         double posteriori = RetriveProbfromBuffer(queryNode, "posteriori", conditionedNodeList);
         posteriori = ((double) Math.round((posteriori) * 1000.0) / 1000.0);
@@ -904,18 +945,18 @@ public class BaseModule {
                     ArrayList<ArrayList<String>> _nodeInfoList = Find_Evidence_NodeInfoList(subsetWithTopchanges,conditionedNodeList, explainableStates);
                     String direction = "increases";
                     return priorText + "Observing "
-                            + NLGtext.SayImply(_nodeInfoList, _targetNodeInfo, direction, "")
-                            + NLGtext.SayImply_no_change(emptyNodeList_for_NO_effect_through_CPT, _targetNodeInfo, "")
-                            + NLGtext.SayConclusion(_targetNodeInfo, Double.toString(posteriori), Double.toString(priorBelief))
+                            + NLGtext_Az.SayImply(_nodeInfoList, _targetNodeInfo, direction, "")
+                            + NLGtext_Az.SayImply_no_change(emptyNodeList_for_NO_effect_through_CPT, _targetNodeInfo, "")
+                            + NLGtext_Az.SayConclusion(_targetNodeInfo, Double.toString(posteriori), Double.toString(priorBelief))
                             + System.getProperty("line.separator").toString();            // put blocked nodelist
 
                 } else if (topValue < 0) {
                     ArrayList<ArrayList<String>> _nodeInfoList = Find_Evidence_NodeInfoList(subsetWithTopchanges,conditionedNodeList, explainableStates);
                     String direction = "decreases";
                     return priorText + "Observing "
-                            + NLGtext.SayImply(_nodeInfoList, _targetNodeInfo, direction, "")
-                            + NLGtext.SayImply_no_change(emptyNodeList_for_NO_effect_through_CPT, _targetNodeInfo, "")
-                            + NLGtext.SayConclusion(_targetNodeInfo, Double.toString(posteriori), Double.toString(priorBelief))
+                            + NLGtext_Az.SayImply(_nodeInfoList, _targetNodeInfo, direction, "")
+                            + NLGtext_Az.SayImply_no_change(emptyNodeList_for_NO_effect_through_CPT, _targetNodeInfo, "")
+                            + NLGtext_Az.SayConclusion(_targetNodeInfo, Double.toString(posteriori), Double.toString(priorBelief))
                             + System.getProperty("line.separator").toString(); // put blocked nodelist
                 } else
                     return priorText + "But the evidence does not change that probability."
@@ -935,8 +976,8 @@ public class BaseModule {
         } else {
             ArrayList<ArrayList<String>> emptyNodeList_for_NO_effect_through_CPT = new ArrayList<>();
             return priorText
-                    + NLGtext.SayImply_no_change(emptyNodeList_for_NO_effect_through_CPT, _targetNodeInfo, Double.toString(posteriori))
-                    + NLGtext.SayConclusion(_targetNodeInfo, Double.toString(posteriori), Double.toString(priorBelief));
+                    + NLGtext_Az.SayImply_no_change(emptyNodeList_for_NO_effect_through_CPT, _targetNodeInfo, Double.toString(posteriori))
+                    + NLGtext_Az.SayConclusion(_targetNodeInfo, Double.toString(posteriori), Double.toString(priorBelief));
 
         }
         return retString;
@@ -982,7 +1023,7 @@ public class BaseModule {
         posteriori = ((double) Math.round((posteriori) * 1000.0) / 1000.0);
         priorBelief = ((double) Math.round((priorBelief) * 1000.0) / 1000.0);
 
-        String PriorText = NLGtext.SayPrior(queryNode, queryNodeState, priorBelief);
+        String PriorText = NLGtext_Az.SayPrior(queryNode, queryNodeState, priorBelief);
 
         ArrayList<ArrayList<String>> _nodeinfoList = Find_Evidence_NodeInfoList(MakeNodeList(conditionedNodeList), conditionedNodeList, explainableStates); // consider all the evidence (unblocked, obviously) set
         ArrayList<String> _targetNodeInfo = new ArrayList<>();
@@ -995,16 +1036,16 @@ public class BaseModule {
         if (valueforTheWholeSet > 0) {
             String direction = "increases";
             return PriorText + "Observing "
-                    + NLGtext.SayImply(_nodeinfoList, _targetNodeInfo, direction, "")
-                    + NLGtext.SayImply_no_change(emptyNodeList_for_NO_effect_through_CPT, _targetNodeInfo, "")
-                    + NLGtext.SayConclusion(_targetNodeInfo, Double.toString(posteriori), Double.toString(priorBelief))
+                    + NLGtext_Az.SayImply(_nodeinfoList, _targetNodeInfo, direction, "")
+                    + NLGtext_Az.SayImply_no_change(emptyNodeList_for_NO_effect_through_CPT, _targetNodeInfo, "")
+                    + NLGtext_Az.SayConclusion(_targetNodeInfo, Double.toString(posteriori), Double.toString(priorBelief))
                     + System.getProperty("line.separator").toString();
         } else {
             String direction = "decreases";
             return PriorText + "Observing "
-                    + NLGtext.SayImply(_nodeinfoList, _targetNodeInfo, direction, "")
-                    + NLGtext.SayImply_no_change(emptyNodeList_for_NO_effect_through_CPT, _targetNodeInfo, "")
-                    + NLGtext.SayConclusion(_targetNodeInfo, Double.toString(posteriori), Double.toString(priorBelief))
+                    + NLGtext_Az.SayImply(_nodeinfoList, _targetNodeInfo, direction, "")
+                    + NLGtext_Az.SayImply_no_change(emptyNodeList_for_NO_effect_through_CPT, _targetNodeInfo, "")
+                    + NLGtext_Az.SayConclusion(_targetNodeInfo, Double.toString(posteriori), Double.toString(priorBelief))
                     + System.getProperty("line.separator").toString();
         }
     }
@@ -1056,7 +1097,7 @@ public class BaseModule {
         double posteriori = RetriveProbfromBuffer(queryNode, "posterior", conditionedNodeList);
         posteriori = ((double) Math.round((posteriori) * 1000.0) / 1000.0);
 
-        PriorText = NLGtext.SayPrior(queryNode, queryNodeState, priorBelief);
+        PriorText = NLGtext_Az.SayPrior(queryNode, queryNodeState, priorBelief);
 
         ArrayList<ArrayList<String>> _nodeinfoList_1 = Find_Evidence_NodeInfoList(subsetWithTopchanges,
                 conditionedNodeList, explainableStates);
@@ -1069,13 +1110,13 @@ public class BaseModule {
         if (topValue > 0) {
             String direction = "increases";
             return PriorText
-                    + NLGtext.SayContradiction(_nodeinfoList_1, _nodeinfoList_2, _targetNodeInfo, direction, posteriori, impactChange, priorBelief)
+                    + NLGtext_Az.SayContradiction(_nodeinfoList_1, _nodeinfoList_2, _targetNodeInfo, direction, posteriori, impactChange, priorBelief)
                     + System.getProperty("line.separator").toString();
 
         } else if (topValue < 0) {
             String direction = "decreases";
             return PriorText
-                    + NLGtext.SayContradiction(_nodeinfoList_1, _nodeinfoList_2, _targetNodeInfo, direction, posteriori, impactChange, priorBelief)
+                    + NLGtext_Az.SayContradiction(_nodeinfoList_1, _nodeinfoList_2, _targetNodeInfo, direction, posteriori, impactChange, priorBelief)
                     + System.getProperty("line.separator").toString();
         } else
             return "";

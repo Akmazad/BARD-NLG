@@ -216,6 +216,9 @@ public class TextGenerator_Az {
 		retStr += ((prob.equals("")) ? "": (" to "+ (Double.parseDouble(prob) * 100.0) + "%."));
 		return retStr;
 	}
+	public String SayCanCause(String parent, ArrayList<String> nodeNameListStr) {
+		return parent + " can causes " + nodeNameListStr + ". ";
+	}
 	// ##################################################################################
 	
 	// ##################### EVIDENCE STATEMENT ############################################
@@ -339,7 +342,7 @@ public class TextGenerator_Az {
 		else if(probVal < 40) 
 			return (withArticle)? "it is probably not the case":"improbable";
 		else if(probVal < 60) 
-			return (withArticle)? "the chances are about even":"roughly even";
+			return (withArticle)? "the chances are about even":"roughly even chance";
 		else if(probVal < 85) 
 			return (withArticle)? "it is probable":"probable";
 		else if(probVal < 100) 
@@ -392,4 +395,5 @@ public class TextGenerator_Az {
 		return retStr;
 	}
 
+	
 }

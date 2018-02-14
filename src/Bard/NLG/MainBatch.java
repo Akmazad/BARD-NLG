@@ -46,7 +46,7 @@ public class MainBatch {
 		List<Path> paths = Stream.of(
 
 				// IARPA problems
-				"Black_Site - Q1.json",
+				 "Black_Site - Q1.json",
 				 "Black_Site - Q2.json",
 				 "Cyberattack - Q1.json",
 				 "Cyberattack - Q2.json",
@@ -113,7 +113,7 @@ public class MainBatch {
 				 "Hydraulic_advanced.json",
 				 "Problem - Evidence Chain (UlrikeH) BN V1.0.json",
 				 "Oil_Spillage.json - temp1.json",
-				 //"ChestClinic_noEvidence.json",		// bug: SHOULD NOT HAPPEN: Could not find a cutting point in a 2 CE
+				 "ChestClinic_noEvidence.json",		// bug: SHOULD NOT HAPPEN: Could not find a cutting point in a 2 CE
 				 "The_Spider - [recursion error].json",
 				""
 				).filter(p->!p.equals("")).map(dirPath::resolve).collect(Collectors.toList());

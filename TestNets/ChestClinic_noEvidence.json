@@ -8,7 +8,8 @@
 	],
 	
 	"target":[
-		{"name": "Bronchitis", "state": "yes"}
+		{"name": "Bronchitis", "state": "yes"},
+		{"name": "Cancer", "state": "yes"}
 	],
 	
 	"verbosity": "long"

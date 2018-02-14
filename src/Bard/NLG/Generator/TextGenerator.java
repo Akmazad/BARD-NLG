@@ -38,13 +38,13 @@ public class TextGenerator {
     Printer printer = new Printer();
 
     // All the segments
-    public final List<Segment> segments;
+    public List<Segment> segments;
 
     // The final target we want to explain
-    public final String ultimateTarget;
+    public String ultimateTarget;
 
     // All the node info
-    public final Set<NodeInfo> allNodeInfos;
+    public Set<NodeInfo> allNodeInfos;
 
 
     //
@@ -53,6 +53,9 @@ public class TextGenerator {
 
     // --- --- --- Constructor
 
+    public TextGenerator() {
+    	
+    }
     public TextGenerator(List<Segment> segments, boolean fake_it_Philip) {
         this.segments = segments;
         //this.ultimateTarget = segments.get(segments.size() - 1).segment.target;
@@ -336,6 +339,70 @@ public class TextGenerator {
 
     }
 
+    public String printBNTextwithCausalityOnly(ArrayList<String> textsforEachNode, Set<NodeInfo> allNodeInfoList) {
+    	//printer.addH2("Preamble");
+    	printer.addH2("Bayesian Network Structure");
+
+    	if(textsforEachNode.size() == 0) {
+    		printer.openPar().addTextRaw("Current BN has an empty causal structure").closePar();    		
+    	}else {
+    		for (int i = 0; i < textsforEachNode.size(); ++i) {
+    			// --- --- --- Gather the information about the edges, filter them.
+    			String currText = textsforEachNode.get(i);
+    			// --- --- --- Text Generation
+    			printer.openPar();
+    			printer.addText(currText).eos();
+    			printer.closePar();
+    		}
+    	}
+    	// --- --- --- After all the segments: create a table
+    	printer.srcnl()
+    	.addH2("Initial and Updated Probabilities")
+    	.openPar()
+    	.addText("The following table contains the initial probabilities in the absence of " + 
+    			"evidence, and the updated probabilities after the evidence has been " + 
+    			"considered").eos().srcnl()
+    	.closePar();
+
+    	printer.openTable();
+    	printer.openTableHead().openTableRow()
+    	.tableHeader("Type").onLast(Printer.Comp::doRaw)
+    	.tableHeader("Variable = State").onLast(Printer.Comp::doRaw)
+    	.tableHeader("Initial Probability").onLast(Printer.Comp::doRaw)
+    	.tableHeader("Updated Probability").onLast(Printer.Comp::doRaw)
+    	.closeTableRow().closeTableHead();
+
+    	// Body
+    	printer.openTableBody();
+    	allNodeInfoList.stream().sorted(Comparator.comparing(a -> a.nodeName)).sorted(Comparator.comparing(a -> a.isUltimateTarget ? 0 : a.isEvidence ? 1 : 2)).forEach(ni -> {
+    		printer.openTableRow();
+
+    		String typeLabel = "Ordinary";
+    		if (ni.isUltimateTarget) {
+    			typeLabel  = "Target";
+    		}
+    		else if (ni.isEvidence) {
+    			typeLabel = "Evidence";
+    		}
+    		printer.tableData(typeLabel).onLast(Printer.Comp::doRaw);
+
+    		printer.openTableData();
+    		printNodeState(ni);
+    		printer.closeTableData();
+
+    		boolean adjPhrase = true;
+    		printer.tableData(getPercentFormat(ni.prior) + "% (" + PutVerbalWord_Az(ni.prior, false, adjPhrase) + ")").onLast(Printer.Comp::doRaw);
+    		printer.tableData(getPercentFormat(ni.posterior) + "% (" + PutVerbalWord_Az(ni.posterior, false, adjPhrase) + ")").onLast(Printer.Comp::doRaw);
+
+
+    		printer.closeTableRow();
+    	});
+    	printer.closeTableBody();
+    	// End of table
+    	printer.closeTable();
+
+    	return printer.realize();
+    }
 
 
     public String PutVerbalWord_Az(double probVal, boolean withArticle, boolean adjPhrase) {
@@ -348,7 +415,7 @@ public class TextGenerator {
 		else if(probVal < 40) 
 			return (withArticle)? "it is probably not the case":"improbable";
 		else if(probVal < 60) 
-			return (withArticle)? "the chances are about even":"roughly even";
+			return (withArticle)? "the chances are about even":"roughly even chance";
 		else if(probVal < 85) 
 			return (withArticle)? "it is probable":"probable";
 		else if(probVal < 100) 
@@ -381,11 +448,12 @@ public class TextGenerator {
 
     // --- --- --- Tools
 
-    private int printAnterior(List<NodeInfo> nis) {
+    private int printAnterior(List<NodeInfo> nis, String segTarget) {
         // --- --- --- Gathering info
         // Evidence and non evidence nodes
-        List<NodeInfo> EV = nis.stream().filter(n -> n.isEvidence).collect(Collectors.toList());
-        List<NodeInfo> nonEV = nis.stream().filter(n -> !n.isEvidence).collect(Collectors.toList());
+    	
+        List<NodeInfo> EV = nis.stream().filter(n -> (n.isEvidence && !n.nodeName.equals(segTarget))).collect(Collectors.toList());
+        List<NodeInfo> nonEV = nis.stream().filter(n -> (!n.isEvidence && !n.nodeName.equals(segTarget))).collect(Collectors.toList());
         // --- Non Evidence: 3 possible directions
         List<NodeInfo> inc = nonEV.stream().filter(n -> n.getDirection() == INCREASE).collect(Collectors.toList());
         List<NodeInfo> dec = nonEV.stream().filter(n -> n.getDirection() == DECREASE).collect(Collectors.toList());
@@ -453,7 +521,7 @@ public class TextGenerator {
     }
 
     private void doCause(NodeInfo.DIRECTION direction, NodeInfo currentTarget, List<NodeInfo> causes) {
-        int number = printAnterior(causes);
+        int number = printAnterior(causes, currentTarget.nodeName);
         printer.addVerb("cause", number);
         switch (direction) {
             case INCREASE:
@@ -471,7 +539,7 @@ public class TextGenerator {
     }
 
     private void doAntiCause(NodeInfo.DIRECTION direction, NodeInfo currentTarget, List<NodeInfo> antiCauses) {
-        int number = printAnterior(antiCauses);
+        int number = printAnterior(antiCauses, currentTarget.nodeName);
         switch (direction) {
             case INCREASE:
                 printer.addVerb("increase", number);
@@ -606,7 +674,7 @@ public class TextGenerator {
                     printer.addTextRaw(",");
 
                     // [observing/the increase/the decrease of alt] further [verb further] the probability of [target]
-                    int number = printAnterior(further);
+                    int number = printAnterior(further, currentTarget.nodeName);
                     printer.addText("further");
                     printer.addVerb(verbFurther, number);
                     printer.addText("the probability of");
@@ -648,7 +716,7 @@ public class TextGenerator {
                     printer.addTextRaw(",");
 
                     // [observing/the increase/the decrease of alt] [verb however] the probability of [target]
-                    int number = printAnterior(however);
+                    int number = printAnterior(however, currentTarget.nodeName);
                     printer.addVerb(verbHowever, number);
                     printer.addText("the probability of");
                     printNodeState(currentTarget);
@@ -675,9 +743,8 @@ public class TextGenerator {
         printer.addText("=");
         printState(currentTarget);
         String verbalWord = PutVerbalWord_Az(currentTarget.posterior, false, true);
-        verbalWord = verbalWord.equals("roughly even")?verbalWord+" chance":verbalWord;	// concate "chances" if it is "roughly even"
+        //verbalWord = verbalWord.equals("roughly even")?verbalWord+" chance":verbalWord;	// concate "chances" if it is "roughly even"
         printer.addText("is " + getPercentFormat(currentTarget.posterior) + "% (" + verbalWord + ")").eos();
-        
 
         printer.closeTableData().closeTableRow();
 	}
@@ -733,31 +800,6 @@ public class TextGenerator {
                     .filter(NodeInfo::isEvidence).sorted(Comparator.comparing(a -> a.nodeName))
                     .collect(Collectors.toList());
 
-
-//            // --- --- SUPPORT
-//            // --- CAUSES
-//            List<NodeInfo> supportCauses = seg.getCausal().stream().filter(seg::isSupporting).collect(Collectors.toList());
-//            // --- ANTICAUSES (excluding common effects)
-//            List<NodeInfo> supportAntiCauses = seg.getAntiCausal().stream().filter(seg::isSupporting).collect(Collectors.toList());
-//            // --- COMMON EFFECTS: the effect is supporting but the alternate cause might be detracting
-//            Map<NodeInfo, Set<NodeInfo>> supportCommonEffect =
-//                    seg.getCommonEffect().entrySet().stream()
-//                            .filter(e -> seg.isSupporting(e.getKey()))
-//                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-//
-//
-//            // --- --- DETRACT
-//            // --- CAUSES:
-//            List<NodeInfo> detractCauses = seg.getCausal().stream().filter(seg::isDetracting).collect(Collectors.toList());
-//            // --- ANTICAUSES (excluding common effects)
-//            List<NodeInfo> detractAntiCauses = seg.getAntiCausal().stream().filter(seg::isDetracting).collect(Collectors.toList());
-//            // --- COMMON EFFECTS: the effect is supporting but the alternate cause might be detracting
-//            Map<NodeInfo, Set<NodeInfo>> detractCommonEffect =
-//                    seg.getCommonEffect().entrySet().stream()
-//                            .filter(e -> seg.isDetracting(e.getKey()))
-//                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-
             // --- --- --- Printing:
             printer.addH3("Step " + (i + 1));
             printer.openTable().openTableBody();
@@ -785,7 +827,7 @@ public class TextGenerator {
             printer.openTableRow()
             .openTableData().addTextRaw("Immediate influences:").closeTableData()
             .openTableData().sentenceForceIN(); // Ensure we are not starting a sentence inside the following list
-            int number = printAnterior(new ArrayList(seg.getNodeInfos()));
+            int number = printAnterior(new ArrayList(seg.getNodeInfos()),currentTarget.nodeName);
             printer.closeTableData().closeTableRow();
             printer.sentenceForceOUT();
 
