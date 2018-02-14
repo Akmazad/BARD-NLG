@@ -9,6 +9,7 @@
 
 package Bard.NLG.Segment;
 
+import Bard.NLG.Tools;
 import Bard.NLG.Segment.Graph.Graph;
 import Bard.NLG.Segment.Graph.Node;
 import Bard.NLG.Segment.Graph.Path;
@@ -160,6 +161,7 @@ public class Analyser extends Graph.Builder {
                             log("<<<Separate: " + cutNode + " for path " + path + ">>>");
                             sepPoints.put(cutNode.get(), path.nodeList);
                         } else {
+                        	System.err.println(path);
                             shouldNotHappen("Could not find a cutting point in a 2 CE Loop");
                         }
                     }
