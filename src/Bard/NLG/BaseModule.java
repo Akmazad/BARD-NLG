@@ -280,7 +280,6 @@ public class BaseModule {
     	ArrayList<String> textsforEachNode = new ArrayList<>();
     	Set<NodeInfo> allNodeInfoList = new HashSet<>();
 		
-    	
 		for(String bnNode:allBNnodes) {
 			ArrayList<String> nodeNameListStr = new ArrayList<>(); 
 			Arrays.asList(_net.getNode(bnNode).getChildren()).forEach(ni -> nodeNameListStr.add(ni.getShortName()));	
@@ -300,9 +299,7 @@ public class BaseModule {
 				
 				textsforEachNode.add(Str);
 			}
-			
-			allNodeInfoList.add(bnNode.equals(ultimateTargetNode) ? ConstructTargetNodeInfo(bnNode, semanticStates, explainableStates, conditionedNodeList): ConstructOtherNodeInfo(bnNode , semanticStates, explainableStates, conditionedNodeList));
-			
+			allNodeInfoList.add(bnNode.equals(ultimateTargetNode) ? ConstructTargetNodeInfo(bnNode, semanticStates, explainableStates, conditionedNodeList): ConstructOtherNodeInfo(bnNode , semanticStates, explainableStates, conditionedNodeList));	
 		}
 		
 		TextGenerator tg = new TextGenerator();
