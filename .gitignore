@@ -26,3 +26,9 @@ hs_err_pid*
 
 /out/
 /bin/
+
+random.seed
+
+# Intellij
+workspace.xml
+tasks.xml
