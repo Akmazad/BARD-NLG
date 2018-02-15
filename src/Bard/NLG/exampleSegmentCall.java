@@ -61,7 +61,7 @@ public class exampleSegmentCall {
 
 
         // THREE NATIONS
-
+/*
         Analyser analyserTN = new Analyser();
 
         // --- Nodes
@@ -95,7 +95,38 @@ public class exampleSegmentCall {
         analyserTN.addEdge("Trubia E1", "Trubia E2");
 
         analyserTN.getSegments();
+*/
 
+
+
+        // CHEST CLINIC
+        Analyser cc = new Analyser();
+        
+        // Nodes
+
+        cc.addTarget("Bronchitis");
+        cc.addEvidence("VisitAsia");
+        cc.addEvidence("XRay");
+        cc.addEvidence("Dyspnea");
+        cc.addSimple("Smoking");
+        cc.addSimple("Tuberculosis");
+        cc.addSimple("TbOrCa");
+        cc.addSimple("Cancer");
+        
+        // Edges
+        cc.addEdge("VisitAsia", "Tuberculosis");
+        cc.addEdge("Tuberculosis", "TbOrCa");
+        cc.addEdge("TbOrCa", "XRay");
+        cc.addEdge("TbOrCa", "Dyspnea");
+        cc.addEdge("Bronchitis", "Dyspnea");
+        cc.addEdge("Smoking", "Bronchitis");
+        cc.addEdge("Smoking", "Cancer");
+        cc.addEdge("Cancer", "TbOrCa");
+
+        cc.getRawSegments();
+
+        
+        
 
 
 

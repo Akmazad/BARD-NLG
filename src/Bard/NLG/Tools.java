@@ -65,7 +65,7 @@ public class Tools {
             } else {
                 outStream.println("**log(): called with a null object*");
             }
-            System.out.flush();
+            outStream.flush();
         }
     }
 

@@ -37,17 +37,18 @@ public class Analyser extends Graph.Builder {
         }
 
         // Else build the graph and try to reduce it.
-        log("Building graph... ");
+        log("BUILDING GRAPH");
         Graph inputGraph = build();
-        log("... Done!");
+        log("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ");
+
 
 
         // --- --- --- ANALYSIS STARTS HERE
 
         // --- --- --- STEP 1: REDUCE THE GRAPH
-        log("Building REDUCED graph... ");
+        log("\nBUILDING REDUCED GRAPH");
         Optional<Graph> reducedGraph = inputGraph.getReducedGraph();
-        log("... Done!");
+        log("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ");
 
         if (!reducedGraph.isPresent()) {
             // Could not reduce it...
@@ -64,7 +65,12 @@ public class Analyser extends Graph.Builder {
             // --- --- --- STEP 3: REMOVING DUPLICATED BRANCHES/HANDLING LOOPS
             // --- A) Detect the loops.
             // WARNING: translation of the "old" scala version. New algo is ongoing research.
+            log("\nTREE ANALYSIS:");
+            log("\n--- Initial tree ---\n" + tree + "\n");
             List<PathTreeNode> myTrees = separate_old(graph, tree);
+            log("\n--- After cut ---\n" + myTrees + "\n");
+            log("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ");
+
             // --- B) Postifx run & filter duplicated and evidences
             // WARNING: removing duplicated -> this is how we deal right now with triangles...
             List<Node> myOrderedTargets = new ArrayList<>();
@@ -75,7 +81,7 @@ public class Analyser extends Graph.Builder {
             // --- --- --- STEP 4: Get the markov blanket
             List<Segment> myOrderedMB = myOrderedTargets.stream().map(n -> n.getMarkovBlanket(graph)).collect(Collectors.toList());
             // A bit of logging
-            log("mytrees:\n" + myTrees + "\n");
+
             log("myOrderedTarget:\n" + myOrderedTargets + "\n");
             log("Initial segments:");
             myOrderedMB.forEach(seg -> log(seg));
@@ -161,6 +167,8 @@ public class Analyser extends Graph.Builder {
                             log("<<<Separate: " + cutNode + " for path " + path + ">>>");
                             sepPoints.put(cutNode.get(), path.nodeList);
                         } else {
+                            System.err.println("Could not find a cutting point in a 2 CE loop");
+                            for(Node n: values){ System.err.println(n); }
                         	System.err.println(path);
                             shouldNotHappen("Could not find a cutting point in a 2 CE Loop");
                         }
