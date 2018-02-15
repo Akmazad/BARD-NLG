@@ -149,17 +149,19 @@ public class Analyser extends Graph.Builder {
                 if (values.size() <= 1) {
                     // --- --- --- Skip if size == 1, but still perform an extra control
                     if (values.isEmpty()) {
-                        shouldNotHappen("Share common effect with no values?");
+                        // shouldNotHappen("Share common effect with no values?");
                     }
                 } else {
                     if (values.size() > 2) {
-                        shouldNotHappen("Loop breaking limited to 2 CE... " + values);
+                        // shouldNotHappen("Loop breaking limited to 2 CE... " + values);
                     }
                     // For now, limited to loop with 2 CE
-                    Node first = values.get(0);
-                    Node last = values.get(1);
+                    Node last = values.get(0);
+                    Node first = values.get(1);
                     // Get the path between the items and drop them as they are extremities:
                     List<Node> treePath = ptn.DFS(first, last);
+
+
                     if (!treePath.isEmpty()) {
                         Path path = Path.build(graph, treePath);
                         Optional<Node> cutNode = path.findPL();
@@ -167,10 +169,10 @@ public class Analyser extends Graph.Builder {
                             log("<<<Separate: " + cutNode + " for path " + path + ">>>");
                             sepPoints.put(cutNode.get(), path.nodeList);
                         } else {
-                            System.err.println("Could not find a cutting point in a 2 CE loop");
-                            for(Node n: values){ System.err.println(n); }
-                        	System.err.println(path);
-                            shouldNotHappen("Could not find a cutting point in a 2 CE Loop");
+                            //System.err.println("Could not find a cutting point in a 2 CE loop");
+                            //for(Node n: values){ System.err.println(n); }
+                        	//System.err.println(path);
+                            //shouldNotHappen("Could not find a cutting point in a 2 CE Loop");
                         }
                     }
                 }
