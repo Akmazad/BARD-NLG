@@ -10,11 +10,9 @@ import java.util.Map.Entry;
 
 public class TextGenerator_Az {
 
-	DecimalFormat df = new DecimalFormat("#.#"); // 1-decimal point
+	private DecimalFormat df = new DecimalFormat("#.#"); // 1-decimal point
 	
 	public TextGenerator_Az() {
-		
-		df.setRoundingMode(RoundingMode.CEILING);
 	}
 
 	// put all functions here
@@ -266,16 +264,16 @@ public class TextGenerator_Az {
 		String opDir = SayOpposite(direction,_nodeInfoList_2);
 		retStr += ( "Observing " + SayImply(_nodeInfoList_1, _targetNodeInfo, direction, ""));
 		//retStr += SayContradict() + "then observing "; 
-		retStr += "In light of this, "; 
+		retStr += "In light of this, observing "; 
 		if(impactChange != 0) {
 			retStr += (SayImply(_nodeInfoList_2, _targetNodeInfo, opDir, "however"));
 			ArrayList<ArrayList<String>> emptyNodeList_for_NO_effect_through_CPT = new ArrayList<>();
 			retStr += (SayImply_no_change(emptyNodeList_for_NO_effect_through_CPT, _targetNodeInfo, ""));
-			retStr += SayConclusion(_targetNodeInfo, Double.toString(posteriorProb), Double.toString(priorProb));
+			retStr += SayConclusion(_targetNodeInfo, posteriorProb, priorProb);
 		}
 		else {
 			retStr += (SayImply_no_change(_nodeInfoList_2, _targetNodeInfo, Double.toString(posteriorProb)));
-			retStr += SayConclusion(_targetNodeInfo, Double.toString(posteriorProb), Double.toString(priorProb));
+			retStr += SayConclusion(_targetNodeInfo, posteriorProb, priorProb);
 		}
 		
 		return retStr;
@@ -296,24 +294,24 @@ public class TextGenerator_Az {
 		return retStr;
 	}
 
-	public String SayConclusion(ArrayList<String> _targetNodeInfo, String posteriorProb, String priorProb) {
+	public String SayConclusion(ArrayList<String> _targetNodeInfo, double posteriorProb, double priorProb) {
 		String retStr = "";
 		retStr += "The final probability of ";
 		retStr += SayNode(_targetNodeInfo.get(0), _targetNodeInfo.get(1), "NP");
 		retStr += " is ";
-		retStr += df.format(Double.parseDouble(posteriorProb)*100.0)  + "% ";
+		retStr += df.format(posteriorProb * 100)  + "% ";
 		retStr += "(";
 		retStr += (isPriorPosteriorSame(posteriorProb,priorProb)) ? "still ":"";
 		boolean adjPhrase = true;
 		//retStr += (posteriorProb.equals("")) ? "" : PutVerbalWord_Az(Double.parseDouble(posteriorProb), false, adjPhrase) + " (" + df.format(Double.parseDouble(posteriorProb)*100.0)  + "%).";
-		retStr += PutVerbalWord_Az(Double.parseDouble(posteriorProb), false, adjPhrase) + ").";
+		retStr += PutVerbalWord_Az(posteriorProb, false, adjPhrase) + ").";
 		
 		return retStr;
 	}
 	
-	private boolean isPriorPosteriorSame(String posteriorProb, String priorProb) {
-		double priorVal = Double.parseDouble(priorProb) * 100;
-		double postVal = Double.parseDouble(posteriorProb) * 100;
+	private boolean isPriorPosteriorSame(double posteriorProb, double priorProb) {
+		double priorVal = priorProb * 100;
+		double postVal = posteriorProb * 100;
 		if(priorVal == 0 && postVal == 0)
 			return true;
 		else if((priorVal > 0 && priorVal < 15) && (postVal > 0 && postVal < 15 ))

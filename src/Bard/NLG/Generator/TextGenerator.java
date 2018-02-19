@@ -262,9 +262,9 @@ public class TextGenerator {
 
                     // alternative(s) causes of effect
                     if (altCauses.size() < 2) {
-                        printer.addText("an alternative cause of");
+                        printer.addText("an other cause of");
                     } else {
-                        printer.addText("alternative causes of");
+                        printer.addText("other causes of");
                     }
                     printNode(effect);
                     //printer.eos().lineBreak();
@@ -344,7 +344,7 @@ public class TextGenerator {
     	printer.addH2("Bayesian Network Structure");
 
     	if(textsforEachNode.size() == 0) {
-    		printer.openPar().addTextRaw("Current BN has an empty causal structure").closePar();    		
+    		printer.openPar().addTextRaw("There are no dependencies between the nodes in this BN.").closePar();    		
     	}else {
     		for (int i = 0; i < textsforEachNode.size(); ++i) {
     			// --- --- --- Gather the information about the edges, filter them.
@@ -452,12 +452,12 @@ public class TextGenerator {
         // --- --- --- Gathering info
         // Evidence and non evidence nodes
     	
-        List<NodeInfo> EV = nis.stream().filter(n -> (n.isEvidence && !n.nodeName.equals(segTarget))).collect(Collectors.toList());
+        List<NodeInfo> EV = nis.stream().filter(n -> (n.isEvidence && !n.nodeName.equals(segTarget))).sorted(Comparator.comparing(a -> a.nodeName)).collect(Collectors.toList());
         List<NodeInfo> nonEV = nis.stream().filter(n -> (!n.isEvidence && !n.nodeName.equals(segTarget))).collect(Collectors.toList());
         // --- Non Evidence: 3 possible directions
-        List<NodeInfo> inc = nonEV.stream().filter(n -> n.getDirection() == INCREASE).collect(Collectors.toList());
-        List<NodeInfo> dec = nonEV.stream().filter(n -> n.getDirection() == DECREASE).collect(Collectors.toList());
-        List<NodeInfo> neu = nonEV.stream().filter(n -> n.getDirection() == NEUTRAL).collect(Collectors.toList());
+        List<NodeInfo> inc = nonEV.stream().filter(n -> n.getDirection() == INCREASE).sorted(Comparator.comparing(a -> a.nodeName)).collect(Collectors.toList());
+        List<NodeInfo> dec = nonEV.stream().filter(n -> n.getDirection() == DECREASE).sorted(Comparator.comparing(a -> a.nodeName)).collect(Collectors.toList());
+        List<NodeInfo> neu = nonEV.stream().filter(n -> n.getDirection() == NEUTRAL).sorted(Comparator.comparing(a -> a.nodeName)).collect(Collectors.toList());
 
         boolean connect = false;
 
@@ -779,21 +779,11 @@ public class TextGenerator {
         // --- ---- --- Per segment
         for (int i = 0; i < segments.size(); ++i) {
 
-            // --- --- --- Gather information:
-
             // The segment
             Segment seg = segments.get(i);
 
             // Current target:
-            // also check if we start with detract or support
             NodeInfo currentTarget = seg.getTarget();
-
-            // By default, we suppose that the target is decreasing: start with support and conclude with detract
-            boolean startWithDetract = false;
-            if (currentTarget.getPrior() < currentTarget.getPosterior()) {
-                // The value of the target actually increases: start with detract and conclude with support
-                startWithDetract = true;
-            }
 
             // All Evidence nodes sorted alphabetically.
             List<NodeInfo> evnodes = seg.getNodeInfos().stream()
@@ -844,44 +834,8 @@ public class TextGenerator {
             printer.closeTableData().closeTableRow();
             printer.sentenceForceOUT();
             
-            
-            
             // CONCLUSION
             doConclusion_L0(currentTarget);
-            
-            
-//            Set<NodeInfo> seenNodes = new HashSet<>();
-//
-//            // --- --- --- No decide if we first do the detract or the support
-//            if (startWithDetract) {
-//                // DETRACT - SUPPORT - CONCLUSION
-//
-//                // DETRACT BATCH:
-//                doBatch(seg, currentTarget, DECREASE,
-//                        detractCauses, detractAntiCauses, detractCommonEffect, seenNodes);
-//
-//                // SUPPORT BATCH:
-//                doBatch(seg, currentTarget, INCREASE,
-//                        supportCauses, supportAntiCauses, supportCommonEffect, seenNodes);
-//
-//                
-//
-//            } else {
-//                // SUPPORT - DETRACT - CONCLUSION
-//
-//                // SUPPORT BATCH:
-//                doBatch(seg, currentTarget, INCREASE,
-//                        supportCauses, supportAntiCauses, supportCommonEffect, seenNodes);
-//
-//                // DETRACT BATCH:
-//                doBatch(seg, currentTarget, DECREASE,
-//                        detractCauses, detractAntiCauses, detractCommonEffect, seenNodes);
-//
-//                // CONCLUSION
-//                doConclusion(currentTarget);
-//            }
-
-           
             // --- --- --- Complete the table
             printer.closeTableBody().closeTable().horizontalRule();
         }
@@ -1101,6 +1055,8 @@ public class TextGenerator {
     }
 
     private void printListNode(List<NodeInfo> nis, Consumer<NodeInfo> printfn, String sep) {
+    	nis = nis.stream().sorted(Comparator.comparing(a -> a.nodeName)).collect(Collectors.toList());
+    	
         if (nis.size() == 0) {
             /* */
         } else if (nis.size() == 1) { // 1 node

@@ -188,7 +188,7 @@ public class Analyser extends Graph.Builder {
                 if (opt.isPresent()) {
                     res.add(opt.get().copyFilter(new HashSet<>(listNode)));
                 } else {
-                    shouldNotHappen("Subtree not found for " + node.id);
+                    //shouldNotHappen("Subtree not found for " + node.id);
                 }
             });
 
