@@ -1,9 +1,15 @@
 package Bard.NLG;
 
+import Bard.NLG.Generator.StructureAnalyser;
 import Bard.NLG.Segment.Analyser;
 import Bard.NLG.Tools;
 
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+
+import static Bard.NLG.Generator.StructureAnalyser.*;
 
 public class exampleSegmentCall {
 
@@ -13,6 +19,77 @@ public class exampleSegmentCall {
     public static void main(String[] args) {
 
         Tools.loggerOn();
+
+        // --- --- --- Example call for the StructureAnalyser
+        // Use the imports:
+        // import Bard.NLG.Generator.StructureAnalyser;
+        // import static Bard.NLG.Generator.StructureAnalyser.*;
+
+        // --- CHEST CLINIC
+        System.out.println("\nCHEST CLINIC");
+        List<Rule> lr = new StructureAnalyser(new HashSet<>(Arrays.asList(
+                new CausalEdge("Smoking", "Bronch"),
+                new CausalEdge("Smoking", "Lc"),
+                new CausalEdge("Lc", "TbOrCa"),
+                new CausalEdge("VA", "Tb"),
+                new CausalEdge("Tb", "TbOrCa"),
+                new CausalEdge("Tb", "TbOrCa"),
+                new CausalEdge("TbOrCa", "XRay"),
+                new CausalEdge("TbOrCa", "Dysp"),
+                new CausalEdge("Bronch", "Dysp")
+        ))).getRules();
+        lr.forEach(System.out::println);
+
+        // --- 3 NATIONS
+        System.out.println("\n3 NATIONS");
+        List<Rule> lr2 = new StructureAnalyser(new HashSet<>(Arrays.asList(
+                new CausalEdge("OHas", "OExp1"),
+                new CausalEdge("OHas", "OExp2"),
+                new CausalEdge("OHas", "OLaunched"),
+                new CausalEdge("OLaunched", "TLaunched"),
+                new CausalEdge("OLaunched", "Residue"),
+                new CausalEdge("TLaunched", "Residue"),
+                new CausalEdge("THas", "TLaunched"),
+                new CausalEdge("THas", "TExp1"),
+                new CausalEdge("THas", "TExp2"),
+                new CausalEdge("TExp1", "TExp2")
+        ))).getRules();
+        lr2.forEach(System.out::println);
+
+        // --- Diamond shapes
+        System.out.println("\nDIAMON SHAPE - 1");
+        List<Rule> lr3 = new StructureAnalyser(new HashSet<>(Arrays.asList(
+                new CausalEdge("A", "C"),
+                new CausalEdge("A", "D"),
+                new CausalEdge("B", "C"),
+                new CausalEdge("B", "D")
+        ))).getRules();
+        lr3.forEach(System.out::println);
+
+        System.out.println("\nDIAMON SHAPE - 2");
+        List<Rule> lr4 = new StructureAnalyser(new HashSet<>(Arrays.asList(
+                new CausalEdge("A", "C"),
+                new CausalEdge("A", "D"),
+                new CausalEdge("C", "B"),
+                new CausalEdge("D", "B")
+        ))).getRules();
+        lr4.forEach(System.out::println);
+
+        System.out.println("\nDIAMON SHAPE - 3");
+        List<Rule> lr5 = new StructureAnalyser(new HashSet<>(Arrays.asList(
+                new CausalEdge("A", "C"),
+                new CausalEdge("A", "D"),
+                new CausalEdge("B", "C"),
+                new CausalEdge("D", "B")
+        ))).getRules();
+        lr5.forEach(System.out::println);
+
+
+
+
+
+
+
 
         /*
         Analyser analyser = new Analyser();
@@ -97,7 +174,7 @@ public class exampleSegmentCall {
         analyserTN.getSegments();
 */
 
-
+/*
 
         // CHEST CLINIC
         Analyser cc = new Analyser();
@@ -125,7 +202,7 @@ public class exampleSegmentCall {
 
         cc.getRawSegments();
 
-        
+        */
         
 
 
