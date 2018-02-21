@@ -242,24 +242,25 @@ public class StructureAnalyser {
 
         // --- --- --- Global Data
         // Will contains the final result
-        List<Rule> result = new ArrayList<>();
-        // Working mutable copy of rules_map: we will remove rules from that map.
-        Map<Set<String>, List<String>> working_rules_map = new HashMap<>(this.rules_map);
-        // Allow to always show the antecedents in the same order
-        Map<String, Integer> keyOrder = new HashMap<>();
+    	List<Rule> result = new ArrayList<>();
+    	if(!this.rules_map.isEmpty()) {
+    		// Working mutable copy of rules_map: we will remove rules from that map.
+    		Map<Set<String>, List<String>> working_rules_map = new HashMap<>(this.rules_map);
+    		// Allow to always show the antecedents in the same order
+    		Map<String, Integer> keyOrder = new HashMap<>();
 
-        // --- --- --- Local Data
-        // Stack of nodes to be added progressively in the "available" set
-        Deque<String> stack_nodeToBeAdded = new ArrayDeque<>();
-        // Set of nodes available to trigger a rule
-        Set<String> available = new HashSet<>();
+    		// --- --- --- Local Data
+    		// Stack of nodes to be added progressively in the "available" set
+    		Deque<String> stack_nodeToBeAdded = new ArrayDeque<>();
+    		// Set of nodes available to trigger a rule
+    		Set<String> available = new HashSet<>();
 
-        // --- --- --- Sorting
-        // --- Init. Note: push => reverse order, so start with "height" depth here!
-        working_rules_map.get(Collections.emptySet()).forEach(stack_nodeToBeAdded::push);
-        working_rules_map.remove(Collections.emptySet());
-        getRules(result, working_rules_map, keyOrder, available, stack_nodeToBeAdded);
-
+    		// --- --- --- Sorting
+    		// --- Init. Note: push => reverse order, so start with "height" depth here!
+    		working_rules_map.get(Collections.emptySet()).forEach(stack_nodeToBeAdded::push);
+    		working_rules_map.remove(Collections.emptySet());
+    		getRules(result, working_rules_map, keyOrder, available, stack_nodeToBeAdded);
+    	}
         return result;
     }
 

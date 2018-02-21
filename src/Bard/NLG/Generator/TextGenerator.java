@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import Bard.NLG.TextGenerator_Az;
+import Bard.NLG.Generator.StructureAnalyser.Rule;
 
 import static Bard.NLG.Generator.NodeInfo.DIRECTION.DECREASE;
 import static Bard.NLG.Generator.NodeInfo.DIRECTION.INCREASE;
@@ -339,16 +340,16 @@ public class TextGenerator {
 
     }
 
-    public String printBNTextwithCausalityOnly(ArrayList<String> textsforEachNode, Set<NodeInfo> allNodeInfoList) {
+    public String printBNTextwithCausalityOnly(List<Rule> orderedText, Set<NodeInfo> allNodeInfoList) {
     	//printer.addH2("Preamble");
     	printer.addH2("Bayesian Network Structure");
 
-    	if(textsforEachNode.size() == 0) {
+    	if(orderedText.size() == 0) {
     		printer.openPar().addTextRaw("There are no dependencies between the nodes in this BN.").closePar();    		
     	}else {
-    		for (int i = 0; i < textsforEachNode.size(); ++i) {
+    		for (int i = 0; i < orderedText.size(); ++i) {
     			// --- --- --- Gather the information about the edges, filter them.
-    			String currText = textsforEachNode.get(i);
+    			String currText = GetTextFromRule(orderedText.get(i));
     			// --- --- --- Text Generation
     			printer.openPar();
     			printer.addText(currText).eos();
@@ -405,7 +406,35 @@ public class TextGenerator {
     }
 
 
-    public String PutVerbalWord_Az(double probVal, boolean withArticle, boolean adjPhrase) {
+    private String GetTextFromRule(Rule rule) {
+		String retStr = "";
+		int cSource = rule.sources.size();
+		int cTarget = rule.targets.size();
+		
+		if(cSource == 1) {
+			retStr += rule.sources.get(0);
+		}else {
+			for(int i = 0; i < (cSource - 1); i++) {
+				retStr += (rule.sources.get(i) + ", ");
+			}
+			retStr = retStr.substring(0, retStr.length() - 2);
+			retStr += (" and " + rule.sources.get(cSource-1));
+		}
+
+		retStr += " can cause ";
+		if(cTarget == 1)
+			retStr += rule.targets.get(0);
+		else {
+			for(int i = 0; i < (cTarget - 1); i++) {
+				retStr += (rule.targets.get(i) + ", ");
+			}
+			retStr = retStr.substring(0, retStr.length() - 2);
+			retStr += (" and ") + rule.targets.get(cTarget-1);
+		}
+
+		return retStr;
+	}
+	public String PutVerbalWord_Az(double probVal, boolean withArticle, boolean adjPhrase) {
 		probVal = probVal * 100;
     	if(adjPhrase) {
 		if(probVal == 0) 
@@ -1078,5 +1107,69 @@ public class TextGenerator {
             printfn.accept(nis.get(nis.size() - 1));
         }
     }
+	public String printBNTextwithCausalityOnly(ArrayList<String> bnText, Set<NodeInfo> allNodeInfoList) {
+    	//printer.addH2("Preamble");
+    	printer.addH2("Bayesian Network Structure");
+
+    	if(bnText.size() == 0) {
+    		printer.openPar().addTextRaw("There are no dependencies between the nodes in this BN.").closePar();    		
+    	}else {
+    		for (int i = 0; i < bnText.size(); ++i) {
+    			// --- --- --- Gather the information about the edges, filter them.
+    			String currText = bnText.get(i);
+    			// --- --- --- Text Generation
+    			printer.openPar();
+    			printer.addText(currText).eos();
+    			printer.closePar();
+    		}
+    	}
+    	// --- --- --- After all the segments: create a table
+    	printer.srcnl()
+    	.addH2("Initial and Updated Probabilities")
+    	.openPar()
+    	.addText("The following table contains the initial probabilities in the absence of " + 
+    			"evidence, and the updated probabilities after the evidence has been " + 
+    			"considered").eos().srcnl()
+    	.closePar();
+
+    	printer.openTable();
+    	printer.openTableHead().openTableRow()
+    	.tableHeader("Type").onLast(Printer.Comp::doRaw)
+    	.tableHeader("Variable = State").onLast(Printer.Comp::doRaw)
+    	.tableHeader("Initial Probability").onLast(Printer.Comp::doRaw)
+    	.tableHeader("Updated Probability").onLast(Printer.Comp::doRaw)
+    	.closeTableRow().closeTableHead();
+
+    	// Body
+    	printer.openTableBody();
+    	allNodeInfoList.stream().sorted(Comparator.comparing(a -> a.nodeName)).sorted(Comparator.comparing(a -> a.isUltimateTarget ? 0 : a.isEvidence ? 1 : 2)).forEach(ni -> {
+    		printer.openTableRow();
+
+    		String typeLabel = "Ordinary";
+    		if (ni.isUltimateTarget) {
+    			typeLabel  = "Target";
+    		}
+    		else if (ni.isEvidence) {
+    			typeLabel = "Evidence";
+    		}
+    		printer.tableData(typeLabel).onLast(Printer.Comp::doRaw);
+
+    		printer.openTableData();
+    		printNodeState(ni);
+    		printer.closeTableData();
+
+    		boolean adjPhrase = true;
+    		printer.tableData(getPercentFormat(ni.prior) + "% (" + PutVerbalWord_Az(ni.prior, false, adjPhrase) + ")").onLast(Printer.Comp::doRaw);
+    		printer.tableData(getPercentFormat(ni.posterior) + "% (" + PutVerbalWord_Az(ni.posterior, false, adjPhrase) + ")").onLast(Printer.Comp::doRaw);
+
+
+    		printer.closeTableRow();
+    	});
+    	printer.closeTableBody();
+    	// End of table
+    	printer.closeTable();
+
+    	return printer.realize();
+	}
 
 }

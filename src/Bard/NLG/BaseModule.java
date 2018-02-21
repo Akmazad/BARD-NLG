@@ -24,11 +24,13 @@ import java.text.DecimalFormat;
 import java.util.Set;
 import org.json.JSONObject;
 
-//AgenaRisk migration
+//AgenaRisk and other native modules in BARD-NLG
 import agenariskserver.*;
 import Bard.NLG.Segment.*;
 import Bard.NLG.Generator.*;
 import Bard.NLG.Generator.Segment;
+import Bard.NLG.Generator.StructureAnalyser;
+import static Bard.NLG.Generator.StructureAnalyser.*;
 
 class NLGException extends Exception {
   public NLGException(String message) {
@@ -169,7 +171,8 @@ public class BaseModule {
               boolean fake_it_Philip = true;
 
               //String bnText = getTextforBNstructure(fake_it_Philip, fake_conditionedNodeList, qNodeInfo.get(0), conditionedNodeList, _BNgraph);
-              String bnText = getTextforBNstructure(backupConditionedList, targetList);
+              //String bnText = getTextforBNstructure(backupConditionedList, targetList);
+              String bnText = getTextforBNstructure_AgendaAlgo(targetList);
               FinalOutputString = "<h1 class=\"target\">Target" + ((targetList.size() > 1)?"s: ":": ") + escapeHtml(getTargetList(targetList)) + "</h1>\n <div class=\"summary\"> \n <h1>Summary</h1>\n" + escapeHtml(FinalOutputString) + bnText + "</div>";
 
               return FinalOutputString;
@@ -237,7 +240,8 @@ public class BaseModule {
           boolean fake_it_Philip = true;
           if (fake_it_Philip)
               //outputResponse_for_A_Target += getTextforBNstructure(fake_it_Philip, fake_conditionedNodeList, queryNode, conditionedNodeList, _BNgraph);
-          	outputResponse_for_A_Target += getTextforBNstructure(backupConditionedList);
+          	//outputResponse_for_A_Target += getTextforBNstructure(backupConditionedList);
+        	  outputResponse_for_A_Target += getTextforBNstructure_AgendaAlgo(backupConditionedList);
           // --------------------- End 
 
           // --------------------- Reasoning steps (for Detailed Explanation only) -------------------------------
@@ -266,7 +270,54 @@ public class BaseModule {
       return FinalOutputString;							// return the final texts (either "summary" or "Detailed" explanation)
   }
  
-  private String getTargetList(ArrayList<ArrayList<String>> targetList) {
+  private String getTextforBNstructure_AgendaAlgo(ArrayList<ArrayList<String>> targetList) throws Exception {
+	  String retStr = "";
+	  	List<CausalEdge> lCausalEdge = new ArrayList<>();
+	  	Set<NodeInfo> allNodeInfoList = new HashSet<>();
+			
+			for(String bnNode:allBNnodes) {
+				ArrayList<String> nodeNameListStr = new ArrayList<>(); 
+				Arrays.asList(_net.getNode(bnNode).getChildren()).forEach(ni -> nodeNameListStr.add(ni.getShortName()));	
+				if(nodeNameListStr.size() != 0) {
+					for(String child:nodeNameListStr)
+						lCausalEdge.add(new CausalEdge(bnNode, child));
+				}
+				// --- create NodeInfo and add into the list
+				String state_name = explainableStates.get(bnNode);
+				Double prior_prob = (Double) RetriveProbfromBuffer(bnNode, "prior").get(state_name);
+				Double posterior_prob = (Double) RetriveProbfromBuffer(bnNode, "posterior").get(state_name);
+				boolean isEvidence = (backupConditionedList.containsKey(bnNode)) ? true : false;
+				boolean isTarget = (isInTargetList(bnNode, targetList) != null) ? true : false;
+				NodeInfo nodeInfo = new NodeInfo(bnNode, bnNode, state_name, prior_prob, posterior_prob, isEvidence, isTarget); // nodeID = nodeName now
+				allNodeInfoList.add(nodeInfo);
+			}
+			
+			List<Rule> orderedText = new StructureAnalyser(new HashSet<>(lCausalEdge)).getRules();
+			TextGenerator tg = new TextGenerator();
+			return tg.printBNTextwithCausalityOnly(orderedText, allNodeInfoList);
+}
+
+  private String getTextforBNstructure_AgendaAlgo(Hashtable conditionedNodeList) throws Exception {
+	  String retStr = "";
+	  	List<CausalEdge> lCausalEdge = new ArrayList<>();
+	  	Set<NodeInfo> allNodeInfoList = new HashSet<>();
+			
+			for(String bnNode:allBNnodes) {
+				ArrayList<String> nodeNameListStr = new ArrayList<>(); 
+				Arrays.asList(_net.getNode(bnNode).getChildren()).forEach(ni -> nodeNameListStr.add(ni.getShortName()));	
+				if(nodeNameListStr.size() != 0) {
+					for(String child:nodeNameListStr)
+						lCausalEdge.add(new CausalEdge(bnNode, child));
+				}
+				// --- create NodeInfo and add into the list
+				allNodeInfoList.add(bnNode.equals(ultimateTargetNode) ? ConstructTargetNodeInfo(bnNode, semanticStates, explainableStates, conditionedNodeList): ConstructOtherNodeInfo(bnNode , semanticStates, explainableStates, conditionedNodeList));
+			}
+			List<Rule> orderedText = new StructureAnalyser(new HashSet<>(lCausalEdge)).getRules();
+			TextGenerator tg = new TextGenerator();
+			return tg.printBNTextwithCausalityOnly(orderedText, allNodeInfoList);
+}
+
+private String getTargetList(ArrayList<ArrayList<String>> targetList) {
 		String retStr = "";
 		for(ArrayList<String> l: targetList)
 			retStr += l.get(0) + ",";
