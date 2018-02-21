@@ -1,5 +1,5 @@
 {
-	"netPath": "ChestClinic.cmp",
+	"netPath": "chestclinic.cmp",
 	"nodes": [
 		{"name": "Smoking", "conditioned": {"yes": 1.0, "no": 0.0}, "background": false},
 		{"name": "VisitAsia", "conditioned": {"yes": 1.0, "no": 0.0}, "background": false},

@@ -1,5 +1,5 @@
 {
-	"netPath": "ChestClinic.cmp",
+	"netPath": "chestclinic.cmp",
 	"nodes": [
 		{"name": "Tuberculosis", "background": true},
 		{"name": "Bronchitis", "background": true},
