@@ -1,0 +1,13 @@
+{
+    "netPath": "SingleNodeNet.cmp",
+  "nodes": [
+
+  ],
+    "target": [
+        {
+            "name": "Test 1",
+            "state": "T"
+        }
+    ],
+    "verbosity": "long"
+}
