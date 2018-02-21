@@ -148,6 +148,15 @@ public class StructureAnalyser {
      */
     public final Comparator<String> depthCmp;
 
+    /**
+     * Antecedent multiplication coefficient use for sorting.
+     * The number of "antecedent" is prevalent when sorting rules.
+     * As the "sorting score" of a rule is just one number, we need to translate a 2 dimension criteria
+     * (arity of antecedents, arity of descendants) in one dimension.
+     * Hence, antecedentCoef is the maximum arity of descendants.
+     */
+    public final int antecedentCoef;
+
 
     // --- --- --- Constructor
 
@@ -175,6 +184,9 @@ public class StructureAnalyser {
         }
 
         tgt_parents = Tools.freezeMapSet(tgt_parents_);
+
+        // --- --- --- Get the antecedentCoef
+        antecedentCoef = tgt_parents.values().stream().mapToInt(Set::size).max().orElse(1);
 
 
         // --- --- --- Depth of node
@@ -290,7 +302,9 @@ public class StructureAnalyser {
                 Optional<Map.Entry<Set<String>, List<String>>> opkv =
                         working_rules_map.entrySet().stream()
                                 .filter(e -> available.containsAll(e.getKey()))
-                                .min(Comparator.comparing(o -> o.getValue().size())); // Get the "smallest" arity first
+                                // Get the "smallest" arity first, penalizing more the keys (and relation in a key)
+                                .min(Comparator.comparing(o -> o.getKey().size()*antecedentCoef + o.getValue().size()));
+
 
                 if (opkv.isPresent()) {
                     // Get info
