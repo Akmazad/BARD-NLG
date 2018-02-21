@@ -263,7 +263,7 @@ public class TextGenerator {
 
                     // alternative(s) causes of effect
                     if (altCauses.size() < 2) {
-                        printer.addText("an other cause of");
+                        printer.addText("another cause of");
                     } else {
                         printer.addText("other causes of");
                     }
