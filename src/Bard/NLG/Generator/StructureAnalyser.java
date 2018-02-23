@@ -237,17 +237,6 @@ public class StructureAnalyser {
         return result;
     }
 
-    /**
-     * Add a list in a stack, reverse order.
-     * A bit hacky, but java does not offer any easy built-in way to do this.
-     * Anyway, we are using ArrayList so this is not terrible.
-     */
-    private void pushList(List<String> l, Deque<String> s) {
-        for (int i = l.size() - 1; i >= 0; --i) {
-            s.push(l.get(i));
-        }
-    }
-
     // --- --- --- Public Methods
 
     public List<Rule> getRules() {
@@ -263,15 +252,20 @@ public class StructureAnalyser {
 
     		// --- --- --- Local Data
     		// Stack of nodes to be added progressively in the "available" set
-    		Deque<String> stack_nodeToBeAdded = new ArrayDeque<>();
+            // WARNING: we need a FIFO kind of structure
+    		LinkedList<String> fifo_nodesToBeAdded = new LinkedList<>();
     		// Set of nodes available to trigger a rule
     		Set<String> available = new HashSet<>();
 
     		// --- --- --- Sorting
-    		// --- Init. Note: push => reverse order, so start with "height" depth here!
-    		working_rules_map.get(Collections.emptySet()).forEach(stack_nodeToBeAdded::push);
-    		working_rules_map.remove(Collections.emptySet());
-    		getRules(result, working_rules_map, keyOrder, available, stack_nodeToBeAdded);
+    		// --- Init. Note: addFirst => reverse order, so start with "height" depth here!
+            //                 A normal FIFO only "addLast"
+            Set<String> es = Collections.emptySet();
+            if(working_rules_map.containsKey(es)) {
+                working_rules_map.get(es).forEach(fifo_nodesToBeAdded::addFirst);
+                working_rules_map.remove(es);
+                getRules(result, working_rules_map, keyOrder, available, fifo_nodesToBeAdded);
+            }
     	}
         return result;
     }
@@ -287,11 +281,11 @@ public class StructureAnalyser {
             Map<String, Integer> keyOrder,
             // "Local"
             Set<String> available,
-            Deque<String> stack_nodeToBeAdded
+            Queue<String> fifo_nodesToBeAdded // WARNING: MUST BE A FIFO IMPLEMENTATION LIKE LINKED_LIST
     ) {
         // --- While we have node to add in the "available" set, continue.
-        while (!stack_nodeToBeAdded.isEmpty()) {
-            String top = stack_nodeToBeAdded.pop();
+        while (!fifo_nodesToBeAdded.isEmpty()) {
+            String top = fifo_nodesToBeAdded.remove();
             available.add(top);
 
             // Continue while we can trigger new rules
@@ -320,14 +314,16 @@ public class StructureAnalyser {
 
                     // --- Now, we want to continue exploring "locally"
                     Set<String> local_available = new HashSet<>(key);   // What allowed to trigger the rule is available
-                    Deque<String> local_stack = new ArrayDeque<>();     // New nodes go in the stack
-                    pushList(val, local_stack);
+                    Queue<String> local_fifo = new LinkedList<>();
+                    // New nodes go in the fifo
+                    local_fifo.addAll(val);
+                    // pushList(val, local_fifo);
 
                     // Remove the rule from the set BEFORE recursive call:
                     working_rules_map.remove(key);
 
                     // Call "locally"
-                    getRules(result, working_rules_map, keyOrder, local_available, local_stack);
+                    getRules(result, working_rules_map, keyOrder, local_available, local_fifo);
 
                     // Get the nodes made "locally" available
                     available.addAll(local_available);
