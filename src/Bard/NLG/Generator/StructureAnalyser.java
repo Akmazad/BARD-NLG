@@ -11,6 +11,7 @@ package Bard.NLG.Generator;
 import Bard.NLG.Tools;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -199,7 +200,7 @@ public class StructureAnalyser {
         node_depth = Tools.freeze(node_depth_);
 
         // --- Associated comparator: take the depth of a node
-        depthCmp = Comparator.comparingInt(node_depth::get);
+        depthCmp = Comparator.comparingInt((String s)->node_depth.get(s)).thenComparing(Comparator.comparing(Function.identity()));
 
 
         // --- --- --- Init the relation map (retro mapping)
@@ -237,6 +238,22 @@ public class StructureAnalyser {
         return result;
     }
 
+    /**
+     * Act as if a rule was chosen, and create it's lexicographic representation.
+     * This allows us to order the potential rules in a lexicographic order as if we choose them.
+     */
+    private String lex(Set<String> keys_, Map<String, Integer> keyOrder_){
+        // Work on copies
+        Map<String, Integer> keyOrder = new HashMap<>(keyOrder_);
+        Set<String> keys = new HashSet<>(keys_);
+        keys.removeAll(keyOrder.keySet());
+        List<String> ok = keys.stream().sorted().collect(Collectors.toList());
+        ok.forEach(k -> keyOrder.putIfAbsent(k, keyOrder.size()));
+        List<String> finalOrder = keys_.stream().sorted(comparing(keyOrder::get)).collect(Collectors.toList());
+        System.err.println("ORDER LEX: " + finalOrder.toString());
+        return finalOrder.toString();
+    }
+
     // --- --- --- Public Methods
 
     public List<Rule> getRules() {
@@ -258,11 +275,15 @@ public class StructureAnalyser {
     		Set<String> available = new HashSet<>();
 
     		// --- --- --- Sorting
-    		// --- Init. Note: addFirst => reverse order, so start with "height" depth here!
-            //                 A normal FIFO only "addLast"
+    		// --- Init. Note: Special case here: we wan to start with larger depth,
+            //                 but we also need to keep the lexical order when tie.
             Set<String> es = Collections.emptySet();
             if(working_rules_map.containsKey(es)) {
-                working_rules_map.get(es).forEach(fifo_nodesToBeAdded::addFirst);
+                List<String> firstKeys = working_rules_map.get(es).stream().sorted(
+                        Comparator.comparingInt((String s)->node_depth.get(s)).reversed() // REVERSED HERE!
+                                .thenComparing(Comparator.comparing(Function.identity()))
+                ).collect(Collectors.toList());
+                fifo_nodesToBeAdded.addAll(firstKeys);
                 working_rules_map.remove(es);
                 getRules(result, working_rules_map, keyOrder, available, fifo_nodesToBeAdded);
             }
@@ -297,19 +318,20 @@ public class StructureAnalyser {
                         working_rules_map.entrySet().stream()
                                 .filter(e -> available.containsAll(e.getKey()))
                                 // Get the "smallest" arity first, penalizing more the keys (and relation in a key)
-                                .min(Comparator.comparing(o -> o.getKey().size()*antecedentCoef + o.getValue().size()));
+                                .min( Comparator.comparing(o ->  o.getKey().size()*antecedentCoef + o.getValue().size()) );
 
 
                 if (opkv.isPresent()) {
                     // Get info
-                    Set<String> key = opkv.get().getKey();
+                    Set<String> keyset = opkv.get().getKey();
+                    List<String> key = keyset.stream().sorted().collect(Collectors.toList()); // Order alpha
                     List<String> val = opkv.get().getValue();
 
-                    // Update the key order with new key only.
+                    // Update the key order with new key only, will be in alphabetical for new keys thanks to above sort
                     key.forEach(k -> keyOrder.putIfAbsent(k, keyOrder.size()));
 
                     // Create the rule
-                    Rule r = new Rule(key, val, keyOrder);
+                    Rule r = new Rule(keyset, val, keyOrder);
                     result.add(r);
 
                     // --- Now, we want to continue exploring "locally"
@@ -320,7 +342,7 @@ public class StructureAnalyser {
                     // pushList(val, local_fifo);
 
                     // Remove the rule from the set BEFORE recursive call:
-                    working_rules_map.remove(key);
+                    working_rules_map.remove(keyset);
 
                     // Call "locally"
                     getRules(result, working_rules_map, keyOrder, local_available, local_fifo);
