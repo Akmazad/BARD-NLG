@@ -21,10 +21,11 @@ public class StructureAnalyser {
 
     // --- --- --- Inner classes
 
-    /** A rule is a list of antecedents and a list of consequents.
+    /**
+     * A rule is a list of antecedents and a list of consequents.
      * Note that the order inside the list matters:
-     *  * antecedents are ordered according to their appearance order when generating the rules
-     *  * consequents are ordered according to their "depth"
+     * * antecedents are ordered according to their appearance order when generating the rules
+     * * consequents are ordered according to their "depth"
      */
     public static class Rule {
 
@@ -76,7 +77,9 @@ public class StructureAnalyser {
         }
     }
 
-    /** A causal edge represent a directed link from the BN. */
+    /**
+     * A causal edge represent a directed link from the BN.
+     */
     public static class CausalEdge {
 
         // --- --- --- Fields
@@ -144,10 +147,6 @@ public class StructureAnalyser {
      */
     public final Map<String, Integer> node_depth;
 
-    /**
-     * "Depth Comparator"
-     */
-    public final Comparator<String> depthCmp;
 
     /**
      * Antecedent multiplication coefficient use for sorting.
@@ -199,9 +198,6 @@ public class StructureAnalyser {
 
         node_depth = Tools.freeze(node_depth_);
 
-        // --- Associated comparator: take the depth of a node
-        depthCmp = Comparator.comparingInt((String s)->node_depth.get(s)).thenComparing(Comparator.comparing(Function.identity()));
-
 
         // --- --- --- Init the relation map (retro mapping)
         // --- Build the map
@@ -221,7 +217,13 @@ public class StructureAnalyser {
         }
 
         // --- Sort consequents. Note: in-place sorting!
-        rules_map_.forEach((key, value) -> value.sort(depthCmp));
+        // We sort first by increasing depth, and then alphabetically.
+        // Note: also see the sorting for initial ground nodes in getRules(), which override this one.
+        rules_map_.forEach(
+                (key, value) -> value.sort(Comparator.comparingInt(
+                        (String s) -> node_depth.get(s)).thenComparing(Comparator.comparing(Function.identity()))
+                )
+        );
         rules_map = Tools.freeze(rules_map_);
 
     }
@@ -238,56 +240,41 @@ public class StructureAnalyser {
         return result;
     }
 
-    /**
-     * Act as if a rule was chosen, and create it's lexicographic representation.
-     * This allows us to order the potential rules in a lexicographic order as if we choose them.
-     */
-    private String lex(Set<String> keys_, Map<String, Integer> keyOrder_){
-        // Work on copies
-        Map<String, Integer> keyOrder = new HashMap<>(keyOrder_);
-        Set<String> keys = new HashSet<>(keys_);
-        keys.removeAll(keyOrder.keySet());
-        List<String> ok = keys.stream().sorted().collect(Collectors.toList());
-        ok.forEach(k -> keyOrder.putIfAbsent(k, keyOrder.size()));
-        List<String> finalOrder = keys_.stream().sorted(comparing(keyOrder::get)).collect(Collectors.toList());
-        System.err.println("ORDER LEX: " + finalOrder.toString());
-        return finalOrder.toString();
-    }
-
     // --- --- --- Public Methods
 
     public List<Rule> getRules() {
 
         // --- --- --- Global Data
         // Will contains the final result
-    	List<Rule> result = new ArrayList<>();
-    	if(!this.rules_map.isEmpty()) {
-    		// Working mutable copy of rules_map: we will remove rules from that map.
-    		Map<Set<String>, List<String>> working_rules_map = new HashMap<>(this.rules_map);
-    		// Allow to always show the antecedents in the same order
-    		Map<String, Integer> keyOrder = new HashMap<>();
+        List<Rule> result = new ArrayList<>();
+        if (!this.rules_map.isEmpty()) {
+            // Working mutable copy of rules_map: we will remove rules from that map.
+            Map<Set<String>, List<String>> working_rules_map = new HashMap<>(this.rules_map);
+            // Allow to always show the antecedents in the same order
+            Map<String, Integer> keyOrder = new HashMap<>();
 
-    		// --- --- --- Local Data
-    		// Stack of nodes to be added progressively in the "available" set
+            // --- --- --- Local Data
+            // Stack of nodes to be added progressively in the "available" set
             // WARNING: we need a FIFO kind of structure
-    		LinkedList<String> fifo_nodesToBeAdded = new LinkedList<>();
-    		// Set of nodes available to trigger a rule
-    		Set<String> available = new HashSet<>();
+            LinkedList<String> fifo_nodesToBeAdded = new LinkedList<>();
+            // Set of nodes available to trigger a rule
+            Set<String> available = new HashSet<>();
 
-    		// --- --- --- Sorting
-    		// --- Init. Note: Special case here: we wan to start with larger depth,
-            //                 but we also need to keep the lexical order when tie.
+            // --- --- --- Sorting
+            // --- Init. Note: Special case here: we want to start with larger depth,
+            //                 but we also need to keep the lexical order when depth tie.
             Set<String> es = Collections.emptySet();
-            if(working_rules_map.containsKey(es)) {
+            if (working_rules_map.containsKey(es)) {
                 List<String> firstKeys = working_rules_map.get(es).stream().sorted(
-                        Comparator.comparingInt((String s)->node_depth.get(s)).reversed() // REVERSED HERE!
+                        // Sort by decreasing depth, and then alphabetically.
+                        Comparator.comparingInt((String s) -> node_depth.get(s)).reversed() // REVERSED HERE!
                                 .thenComparing(Comparator.comparing(Function.identity()))
                 ).collect(Collectors.toList());
                 fifo_nodesToBeAdded.addAll(firstKeys);
                 working_rules_map.remove(es);
                 getRules(result, working_rules_map, keyOrder, available, fifo_nodesToBeAdded);
             }
-    	}
+        }
         return result;
     }
 
@@ -318,7 +305,7 @@ public class StructureAnalyser {
                         working_rules_map.entrySet().stream()
                                 .filter(e -> available.containsAll(e.getKey()))
                                 // Get the "smallest" arity first, penalizing more the keys (and relation in a key)
-                                .min( Comparator.comparing(o ->  o.getKey().size()*antecedentCoef + o.getValue().size()) );
+                                .min(Comparator.comparing(o -> o.getKey().size() * antecedentCoef + o.getValue().size()));
 
 
                 if (opkv.isPresent()) {
