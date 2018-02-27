@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="C:/Users/aazad/Google Drive/BARD-NLG Team [private]/Git repo/Bard_NLG/thirdparties/json-20170516.jar"/>
+	<classpathentry kind="lib" path="C:/Users/aazad/Google Drive/BARD-NLG Team [private]/Git repo/Bard_NLG/thirdparties/SimpleNLG-4.4.8.jar"/>
+	<classpathentry kind="lib" path="C:/Users/aazad/Google Drive/BARD-NLG Team [private]/Git repo/Bard_NLG/thirdparties/agenariskserver-0.3.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/aazad/Google Drive/BARD-NLG Team [private]/Git repo/Bard_NLG/thirdparties/commons-math3-3.6.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/aazad/Google Drive/BARD-NLG Team [private]/Git repo/Bard_NLG/thirdparties/google-guava.jar"/>
+	<classpathentry kind="lib" path="C:/Users/aazad/Google Drive/BARD-NLG Team [private]/Git repo/Bard_NLG/thirdparties/minerva.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

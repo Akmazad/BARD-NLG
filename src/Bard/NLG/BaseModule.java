@@ -1292,7 +1292,7 @@ private String getTargetList(ArrayList<ArrayList<String>> targetList) {
 						else if (set_2.length < set_1.length)
 							return -1;
 						else {
-							if(org_value_2 < 0)	// means is a positive value
+							if(org_value_2 < 0)	// means is a negative value
 								return 1;
 							else
 								return -1;
