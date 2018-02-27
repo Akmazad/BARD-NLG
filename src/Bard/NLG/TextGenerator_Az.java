@@ -10,9 +10,12 @@ import java.util.Map.Entry;
 
 public class TextGenerator_Az {
 
+	private Random rand;
+	
 	private DecimalFormat df = new DecimalFormat("#.#"); // 1-decimal point
 	
 	public TextGenerator_Az() {
+		rand = new Random(1);
 	}
 
 	// put all functions here
@@ -21,7 +24,7 @@ public class TextGenerator_Az {
 	}
 
 	public String SayPriorPrefix() {
-		Random rand = new Random();
+		//Random rand = new Random();
 		ArrayList<String> retArr = new ArrayList<>();
 		//retArr.add("In general, ");
 		retArr.add("In the absence of evidence, ");
@@ -30,7 +33,7 @@ public class TextGenerator_Az {
 	}
 
 	public String SayProbNode(String nodeName, String stateName, double prob, String phraseOption) {
-		Random rand = new Random();
+		//Random rand = new Random();
 		
 		if(prob == 1.0) { // this is to wrap SayNode function 
 			return SayNode(nodeName, stateName, "NP");
@@ -71,8 +74,7 @@ public class TextGenerator_Az {
 		}
 	}
 	
-	public String SayContradict() {
-		Random rand = new Random();
+	public String SayContradict() {;
 		ArrayList<String> retArr = new ArrayList<>();
 		retArr.add("However, ");
 		//retArr.add(" But, ");
@@ -181,7 +183,7 @@ public class TextGenerator_Az {
 	}
 
 	public String SayAlternativeCauses() {
-		Random rand = new Random();
+		//Random rand = new Random();
 		ArrayList<String> middleText = new ArrayList<>();
 		
 		middleText.add("causes ");
@@ -191,7 +193,7 @@ public class TextGenerator_Az {
 	}
 	
 	public String SayConsequence() {
-		Random rand = new Random();
+		//Random rand = new Random();
 		ArrayList<String> retArr = new ArrayList<>();
 		retArr.add("Therefore, ");
 		retArr.add("Hence, ");
