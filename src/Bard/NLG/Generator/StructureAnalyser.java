@@ -314,8 +314,9 @@ public class StructureAnalyser {
                     List<String> key = keyset.stream().sorted().collect(Collectors.toList()); // Order alpha
                     List<String> val = opkv.get().getValue();
 
-                    // Update the key order with new key only, will be in alphabetical for new keys thanks to above sort
+                    // Update the key & val order with new key only, will be in alphabetical for new keys thanks to above sort
                     key.forEach(k -> keyOrder.putIfAbsent(k, keyOrder.size()));
+                    val.forEach(k -> keyOrder.putIfAbsent(k, keyOrder.size()));
 
                     // Create the rule
                     Rule r = new Rule(keyset, val, keyOrder);
