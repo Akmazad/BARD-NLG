@@ -12,6 +12,7 @@
 	],
 	
 	"target":[
+		{"name": "TbOrCa", "state": "yes"},
 		{"name": "Cancer", "state": "yes"},
 		{"name": "Bronchitis", "state": "yes"}
 	],

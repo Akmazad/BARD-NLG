@@ -105,7 +105,8 @@ public class TextGenerator {
         //printPreamble();
         //printer.srcnl();
         
-        printReasoning_L0();
+        //printReasoning_L0();
+        printReasoning_L_05();
         //printReasoning();
         printer.closeTag("div");
         return printer.realize();
@@ -871,7 +872,81 @@ public class TextGenerator {
 
     }
 
-    
+    private void printReasoning_L_05() {
+
+        printer.addH2("Reasoning");
+
+        // ------------ Get all the evidence nodes in all the segments
+        Set<NodeInfo> allEvidenceinBN = new HashSet<NodeInfo>();
+        segments.forEach(seg -> allEvidenceinBN.addAll(seg.getNodeInfos().stream().
+        		filter(NodeInfo::isEvidence).sorted(Comparator.comparing(a -> a.nodeName)).collect(Collectors.toSet())));
+        
+        // --- ---- --- Per segment
+        for (int i = 0; i < segments.size(); ++i) {
+
+            // The segment
+            Segment seg = segments.get(i);
+
+            // Current target:
+            NodeInfo currentTarget = seg.getTarget();
+
+            // All Evidence nodes sorted alphabetically.
+            List<NodeInfo> evnodes = seg.getNodeInfos().stream()
+                    .filter(NodeInfo::isEvidence).sorted(Comparator.comparing(a -> a.nodeName))
+                    .collect(Collectors.toList());
+
+            // --- --- --- Printing:
+            printer.addH3("Step " + (i + 1));
+            printer.openTable().openTableBody();
+
+            // --- --- --- Result variable: target of the current segment
+            printer.openTableRow()
+                    .openTableData().addTextRaw("Result variable:").closeTableData()
+                    .openTableData();
+            printNode(currentTarget);
+            printer.closeTableData().closeTableRow();
+
+            // --- --- --- List of observed Nodes:
+//            printer.openTableRow()
+//            .openTableData().addTextRaw("Observed:").closeTableData()
+//            .openTableData().sentenceForceIN(); // Ensure we are not starting a sentence inside the following list
+//            if (!evnodes.isEmpty()) {
+//                printListNode(evnodes, this::printNodeState, "and");
+//            }else {
+//            	printer.addText("(empty)");
+//            }
+//            printer.closeTableData().closeTableRow();
+//            printer.sentenceForceOUT();
+
+            // IMMEDIATE INFLUENCES
+            printer.openTableRow()
+            .openTableData().addTextRaw("Immediate observed influences:").closeTableData()
+            .openTableData().sentenceForceIN(); // Ensure we are not starting a sentence inside the following list
+            int number = printAnterior(new ArrayList(seg.getNodeInfos()),currentTarget.nodeName);
+            printer.closeTableData().closeTableRow();
+            printer.sentenceForceOUT();
+
+            // OTHER INFLUENCES [NOT MENTIONED YET]
+            printer.openTableRow()
+            .openTableData().addTextRaw("Other Influences [not mentioned yet]:").closeTableData()
+            .openTableData().sentenceForceIN(); // Ensure we are not starting a sentence inside the following list
+            allEvidenceinBN.removeAll(evnodes);	// asymmetric set difference: allEvidenceinBN \ evnodes
+            if (!allEvidenceinBN.isEmpty()) {
+                printListNode(new ArrayList<NodeInfo>(allEvidenceinBN), this::printNodeState, "and");
+            }else {
+            	printer.addText("(empty)");
+            }
+            printer.closeTableData().closeTableRow();
+            printer.sentenceForceOUT();
+            
+            // CONCLUSION
+            doConclusion_L0(currentTarget);
+            // --- --- --- Complete the table
+            printer.closeTableBody().closeTable().horizontalRule();
+        }
+
+    }
+
 	private void printReasoning() {
 
         printer.addH2("Reasoning");
