@@ -14,6 +14,8 @@ public class TextGenerator_Az {
 	
 	private DecimalFormat df = new DecimalFormat("#.#"); // 1-decimal point
 	
+	public static ArrayList<ArrayList<String>> NE_batch_Blocked_or_through_CPT = new ArrayList<>();
+	
 	public TextGenerator_Az() {
 		rand = new Random(1);
 	}
@@ -372,11 +374,17 @@ public class TextGenerator_Az {
 			String prob) {
 		String retStr = "";
 
+		NE_batch_Blocked_or_through_CPT.clear();
+		
 		if(BaseModule.blockedEvidenceNodeInfoList.size() > 0) {
 			_nodeInfoList.addAll(BaseModule.blockedEvidenceNodeInfoList);
 		}
 		
 		if(_nodeInfoList.size() > 0) {
+
+			// put all the No effect nodes here
+			NE_batch_Blocked_or_through_CPT = _nodeInfoList;
+			
 			retStr += (SayNodeList(_nodeInfoList, "NP", "or") + " ");
 			//retStr += SayDirection(direction, "VP", _nodeInfoList.size());
 

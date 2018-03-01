@@ -105,8 +105,8 @@ public class TextGenerator {
         //printPreamble();
         //printer.srcnl();
         
-        //printReasoning_L0();
-        printReasoning_L_05();
+        printReasoning_L0();
+        //printReasoning_L_05();
         //printReasoning();
         printer.closeTag("div");
         return printer.realize();
@@ -478,7 +478,7 @@ public class TextGenerator {
 
     // --- --- --- Tools
 
-    private int printAnterior(List<NodeInfo> nis, String segTarget) {
+    private int printAnterior_L0(List<NodeInfo> nis, String segTarget) {
         // --- --- --- Gathering info
         // Evidence and non evidence nodes
     	
@@ -489,6 +489,12 @@ public class TextGenerator {
         List<NodeInfo> dec = nonEV.stream().filter(n -> n.getDirection() == DECREASE).sorted(Comparator.comparing(a -> a.nodeName)).collect(Collectors.toList());
         List<NodeInfo> neu = nonEV.stream().filter(n -> n.getDirection() == NEUTRAL).sorted(Comparator.comparing(a -> a.nodeName)).collect(Collectors.toList());
 
+        int totalNodeTBM = EV.size() + nonEV.size();
+        String immLabelText = (totalNodeTBM > 1) ? "Immediate influences:" : "Immediate influence:";
+        printer.openTableRow()
+        .openTableData().addTextRaw(immLabelText).closeTableData()
+        .openTableData().sentenceForceIN(); // Ensure we are not starting a sentence inside the following list
+        
         boolean connect = false;
 
         // Observing the evidences ...
@@ -502,9 +508,9 @@ public class TextGenerator {
         if (!inc.isEmpty()) {
             if (connect) {
                 printer.addTextRaw(", and");
-                printer.addText("the increase in the probability of");
+                printer.addText("the increase in the "+ (inc.size()>1?"probabilities":"probability") +" of");
             }else {
-            	printer.addText("The increase in the probability of");
+            	printer.addText("The increase in the "+ (inc.size()>1?"probabilities":"probability") +" of");
             }
             
             printListNode(inc, this::printNodeState, "and");
@@ -515,9 +521,9 @@ public class TextGenerator {
         if (!dec.isEmpty()) {
             if (connect) {
                 printer.addTextRaw(", and");
-                printer.addText("the decrease in the probability of");
+                printer.addText("the decrease in the "+ (dec.size()>1?"probabilities":"probability") +" of");
             }else {
-            	printer.addText("The decrease in the probability of");
+            	printer.addText("The decrease in the "+ (dec.size()>1?"probabilities":"probability") +" of");
             }
             
             printListNode(dec, this::printNodeState, "and");
@@ -528,9 +534,9 @@ public class TextGenerator {
         if (!neu.isEmpty()) {
             if (connect) {
                 printer.addTextRaw(", together with");
-                printer.addText("the unchanged probability of");
+                printer.addText("the unchanged "+ (neu.size()>1?"probabilities":"probability") +" of");
             }else {
-            	printer.addText("The unchanged probability of");
+            	printer.addText("The unchanged "+ (neu.size()>1?"probabilities":"probability") +" of");
             }
             
             printListNode(dec, this::printNodeState, "and");
@@ -550,8 +556,16 @@ public class TextGenerator {
         return number;
     }
 
+    private int printAnterior_L0_5(List<NodeInfo> nis, String segTarget) {
+    	/*
+    	 * TBD
+    	 */
+    	
+        return 0;
+    }
+
     private void doCause(NodeInfo.DIRECTION direction, NodeInfo currentTarget, List<NodeInfo> causes) {
-        int number = printAnterior(causes, currentTarget.nodeName);
+        int number = printAnterior_L0_5(causes, currentTarget.nodeName);
         printer.addVerb("cause", number);
         switch (direction) {
             case INCREASE:
@@ -569,7 +583,7 @@ public class TextGenerator {
     }
 
     private void doAntiCause(NodeInfo.DIRECTION direction, NodeInfo currentTarget, List<NodeInfo> antiCauses) {
-        int number = printAnterior(antiCauses, currentTarget.nodeName);
+        int number = printAnterior_L0_5(antiCauses, currentTarget.nodeName);
         switch (direction) {
             case INCREASE:
                 printer.addVerb("increase", number);
@@ -704,7 +718,7 @@ public class TextGenerator {
                     printer.addTextRaw(",");
 
                     // [observing/the increase/the decrease of alt] further [verb further] the probability of [target]
-                    int number = printAnterior(further, currentTarget.nodeName);
+                    int number = printAnterior_L0_5(further, currentTarget.nodeName);
                     printer.addText("further");
                     printer.addVerb(verbFurther, number);
                     printer.addText("the probability of");
@@ -746,7 +760,7 @@ public class TextGenerator {
                     printer.addTextRaw(",");
 
                     // [observing/the increase/the decrease of alt] [verb however] the probability of [target]
-                    int number = printAnterior(however, currentTarget.nodeName);
+                    int number = printAnterior_L0_5(however, currentTarget.nodeName);
                     printer.addVerb(verbHowever, number);
                     printer.addText("the probability of");
                     printNodeState(currentTarget);
@@ -844,10 +858,8 @@ public class TextGenerator {
             printer.sentenceForceOUT();
 
             // IMMEDIATE INFLUENCES
-            printer.openTableRow()
-            .openTableData().addTextRaw("Immediate influences:").closeTableData()
-            .openTableData().sentenceForceIN(); // Ensure we are not starting a sentence inside the following list
-            int number = printAnterior(new ArrayList(seg.getNodeInfos()),currentTarget.nodeName);
+            
+            int number = printAnterior_L0(new ArrayList(seg.getNodeInfos()),currentTarget.nodeName);
             printer.closeTableData().closeTableRow();
             printer.sentenceForceOUT();
 
@@ -872,7 +884,7 @@ public class TextGenerator {
 
     }
 
-    private void printReasoning_L_05() {
+    private void printReasoning_L_05() {	// still under-development, just started changing it from "printReasoning_L0"
 
         printer.addH2("Reasoning");
 
@@ -922,7 +934,7 @@ public class TextGenerator {
             printer.openTableRow()
             .openTableData().addTextRaw("Immediate observed influences:").closeTableData()
             .openTableData().sentenceForceIN(); // Ensure we are not starting a sentence inside the following list
-            int number = printAnterior(new ArrayList(seg.getNodeInfos()),currentTarget.nodeName);
+            int number = printAnterior_L0_5(new ArrayList(seg.getNodeInfos()),currentTarget.nodeName);
             printer.closeTableData().closeTableRow();
             printer.sentenceForceOUT();
 

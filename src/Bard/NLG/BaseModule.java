@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
+import java.util.stream.Collectors;
 import java.util.Collections;
 import java.util.Comparator;
 import java.lang.Math;
@@ -286,7 +287,8 @@ public class BaseModule {
 				String state_name = explainableStates.get(bnNode);
 				Double prior_prob = (Double) RetriveProbfromBuffer(bnNode, "prior").get(state_name);
 				Double posterior_prob = (Double) RetriveProbfromBuffer(bnNode, "posterior").get(state_name);
-				boolean isEvidence = (backupConditionedList.containsKey(bnNode)) ? true : false;
+				boolean isEvidence = (backupConditionedList.containsKey(bnNode) && 
+		  				(isHardEvidence((Hashtable) backupConditionedList.get(bnNode)) != null)) ? true : false;
 				boolean isTarget = (isInTargetList(bnNode, targetList) != null) ? true : false;
 				NodeInfo nodeInfo = new NodeInfo(bnNode, bnNode, state_name, prior_prob, posterior_prob, isEvidence, isTarget); // nodeID = nodeName now
 				allNodeInfoList.add(nodeInfo);
@@ -310,7 +312,9 @@ public class BaseModule {
 						lCausalEdge.add(new CausalEdge(bnNode, child));
 				}
 				// --- create NodeInfo and add into the list
-				allNodeInfoList.add(bnNode.equals(ultimateTargetNode) ? ConstructTargetNodeInfo(bnNode, semanticStates, explainableStates, conditionedNodeList): ConstructOtherNodeInfo(bnNode , semanticStates, explainableStates, conditionedNodeList));
+				allNodeInfoList.add(bnNode.equals(ultimateTargetNode) ? 
+													ConstructTargetNodeInfo(bnNode, semanticStates, explainableStates, conditionedNodeList): 
+														ConstructOtherNodeInfo(bnNode , semanticStates, explainableStates, conditionedNodeList));
 			}
 			List<Rule> orderedText = new StructureAnalyser(new HashSet<>(lCausalEdge)).getRules();
 			TextGenerator tg = new TextGenerator();
@@ -352,7 +356,8 @@ private String getTargetList(ArrayList<ArrayList<String>> targetList) {
 			String state_name = explainableStates.get(bnNode);
 			Double prior_prob = (Double) RetriveProbfromBuffer(bnNode, "prior").get(state_name);
 			Double posterior_prob = (Double) RetriveProbfromBuffer(bnNode, "posterior").get(state_name);
-			boolean isEvidence = (conditionedNodeList.containsKey(bnNode)) ? true : false;
+			boolean isEvidence = (conditionedNodeList.containsKey(bnNode) && 
+	  				(isHardEvidence((Hashtable) conditionedNodeList.get(bnNode)) != null)) ? true : false;
 			boolean isTarget = (isInTargetList(bnNode, targetList) != null) ? true : false;
 			NodeInfo nodeInfo = new NodeInfo(bnNode, bnNode, state_name, prior_prob, posterior_prob, isEvidence, isTarget); // nodeID = nodeName now
 			allNodeInfoList.add(nodeInfo);
@@ -628,7 +633,7 @@ private String getTargetList(ArrayList<ArrayList<String>> targetList) {
       return retList;
   }
 
-  private NodeInfo ConstructOtherNodeInfo(String oSegNode, Map<String, String> semanticStates, Map<String, String> explainableStates, Hashtable conditionedNodeList) throws Exception {
+  private NodeInfo ConstructOtherNodeInfo(String oSegNode, Map<String, String> semanticStates, Map<String, String> explainableStates, Hashtable<String,Hashtable<String,Double>> conditionedNodeList) throws Exception {
       String state_Name = explainableStates.get(oSegNode);
       Double prior_prob = 0.0;
       Double posterior_prob = 0.0;
@@ -639,7 +644,9 @@ private String getTargetList(ArrayList<ArrayList<String>> targetList) {
           prior_prob = 0.5;
           posterior_prob = 0.5;
       }
-      boolean isEvidence = (conditionedNodeList.containsKey(oSegNode)) ? true : false;
+      
+      boolean isEvidence = (conditionedNodeList.containsKey(oSegNode) && 
+    		  				(isHardEvidence((Hashtable) conditionedNodeList.get(oSegNode)) != null)) ? true : false;
       boolean isTarget = false;
       NodeInfo nodeInfo = new NodeInfo(oSegNode, oSegNode, state_Name, prior_prob, posterior_prob, isEvidence, isTarget); // nodeID = nodeName Now
       return nodeInfo;
@@ -656,7 +663,8 @@ private String getTargetList(ArrayList<ArrayList<String>> targetList) {
           prior_prob = 0.5;
           posterior_prob = 0.5;
       }
-      boolean isEvidence = (conditionedNodeList.containsKey(target)) ? true : false;
+      boolean isEvidence = (conditionedNodeList.containsKey(target) && 
+				(isHardEvidence((Hashtable) conditionedNodeList.get(target)) != null)) ? true : false;
       boolean isTarget = (ultimateTargetNode.equals(target)) ? true : false;
       NodeInfo nodeInfo = new NodeInfo(target, target, state_name, prior_prob, posterior_prob, isEvidence, isTarget); // nodeID = nodeName now
       return nodeInfo;
@@ -875,24 +883,33 @@ private String getTargetList(ArrayList<ArrayList<String>> targetList) {
   }
 
   private void MakeBNforMH(Net _net2, Hashtable conditionedNodeList, String queryNode, Analyser a) throws Exception {
-      a.addTarget(queryNode);
-      ArrayList<String> evidenceList = Collections.list(conditionedNodeList.keys());
-      for (String ev : evidenceList) {
-          a.addEvidence(ev);
-      }
-      Node[] allnodes = _net.getNodes();
-      for (Node n1 : allnodes) {
-          String sourceNodeID = n1.getShortName();
-          a.addSimple(sourceNodeID); // all the node IDs are inserted
-      }
-      for (Node n1 : allnodes) {
-          String sourceNodeID = n1.getShortName();
-          Node[] children = n1.getChildren();
-          for (Node n2 : children) {
-              String targetNodeID = n2.getShortName();
-              a.addEdge(sourceNodeID, targetNodeID); // add the edges
-          }
-      }
+	  a.addTarget(queryNode);
+
+	  // --- --- --- Set of non impacting evidences
+	  List<String> nonImpactEv = TextGenerator_Az.NE_batch_Blocked_or_through_CPT.stream().map(item -> item.get(0)).collect(Collectors.toList());
+
+	  // --- --- --- List of impacting evidences
+	  HashMap<String, HashMap<String, Double>> tempConditionedList = new HashMap<>(conditionedNodeList);
+	  List<String> evidenceList = tempConditionedList.keySet().stream().filter( ev -> !nonImpactEv.contains(ev) ).collect(Collectors.toList());
+
+	  for (String ev : evidenceList) {
+		  a.addEvidence(ev);
+	  }
+	  Node[] allnodes = _net.getNodes();
+	  for (Node n1 : allnodes) {
+		  String sourceNodeID = n1.getShortName();
+		  a.addSimple(sourceNodeID); // all the node IDs are inserted
+	  }
+	  for (Node n1 : allnodes) {
+		  String sourceNodeID = n1.getShortName();
+		  Node[] children = n1.getChildren();
+		  for (Node n2 : children) {
+			  String targetNodeID = n2.getShortName();
+			  if(!nonImpactEv.contains(sourceNodeID) && !nonImpactEv.contains(targetNodeID)) {
+				  a.addEdge(sourceNodeID, targetNodeID); // add the edges
+			  }
+		  }
+	  }
   }
 
   private void re_InitializeGlobalVariable() {
