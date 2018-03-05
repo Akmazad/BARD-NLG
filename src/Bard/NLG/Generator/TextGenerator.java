@@ -23,7 +23,7 @@ public class TextGenerator {
 
     public static int CONNECTOR_IDX = 0;
     
-    public static boolean fake_it_philip = false;
+    //public static boolean fake_it_philip = false;
 
     public String getConnector() {
         String res = CONNECTORS[CONNECTOR_IDX];
@@ -57,15 +57,15 @@ public class TextGenerator {
     public TextGenerator() {
     	
     }
-    public TextGenerator(List<Segment> segments, boolean fake_it_Philip) {
-        this.segments = segments;
-        //this.ultimateTarget = segments.get(segments.size() - 1).segment.target;
-        this.ultimateTarget = FindUltimateTarget(segments); 
-        // (t1, t2)->t1 ! handle duplicated key with merge function. Should be same name so just choose one.
-        //this.mapIdName = segments.stream().flatMap(s -> s.getMapIdName().entrySet().stream()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (t1, t2) -> t1));
-        this.allNodeInfos = segments.stream().flatMap(s -> s.getNodeInfos().stream()).collect(Collectors.toSet());
-        this.fake_it_philip = fake_it_Philip;
-    }
+//    public TextGenerator(List<Segment> segments, boolean fake_it_Philip) {
+//        this.segments = segments;
+//        //this.ultimateTarget = segments.get(segments.size() - 1).segment.target;
+//        this.ultimateTarget = FindUltimateTarget(segments); 
+//        // (t1, t2)->t1 ! handle duplicated key with merge function. Should be same name so just choose one.
+//        //this.mapIdName = segments.stream().flatMap(s -> s.getMapIdName().entrySet().stream()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (t1, t2) -> t1));
+//        this.allNodeInfos = segments.stream().flatMap(s -> s.getNodeInfos().stream()).collect(Collectors.toSet());
+//        //this.fake_it_philip = fake_it_Philip;
+//    }
 
     public TextGenerator(List<Segment> segments) {
         this.segments = segments;
@@ -89,17 +89,6 @@ public class TextGenerator {
 	// --- --- --- Public Methods
 
     public String getText() {
-    	
-    	if(fake_it_philip) {
-    		printer.openTag("div").onTop(t -> t.addAttribute("class", "container")).srcnl();
-            printer.addH1("Details").srcnl();
-            printPreamble();
-            printer.srcnl();
-
-            printer.closeTag("div");
-            return printer.realize();
-    	}
-    	
         printer.openTag("div").onTop(t -> t.addAttribute("class", "container")).srcnl();
         //printer.addH1("Details").srcnl();
         //printPreamble();
@@ -121,226 +110,7 @@ public class TextGenerator {
 
     // --- --- --- Preamble
 
-    private void printPreamble() {
-        //printer.addH2("Preamble");
-    	printer.addH2("Bayesian Network Structure");
-
-    	if(segments.size() == 0) {
-    		printer.openPar().addTextRaw("NO TEXT").closePar();    		
-    	}else {
-        // --- --- --- Preamble construction:
-        // We have the following relation with respect to the target:
-        // CAUSAL: target <- node                              (node causes target)
-        // ANTICAUSAL: target -> node                          (target causes node)
-        // COMMON EFFECT: target -> effect <- alternate cause  (target causes node)
-        // * Anticausal & Common effect are treated together.
-        // * When the target of the current segment is causing the target in the next segment, mention it
-        //   as an ANTICAUSAL (current target causes next target)
-        // * If a "link" has already been mentioned, do not mentioned it again.
-        //   We only check causal direction. We use an "already seen" filter:
-        HashSet<Edge> causalEdges = new HashSet<Edge>();
-
-
-        // --- --- --- For each segment
-        for (int i = 0; i < segments.size(); ++i) {
-
-            // --- --- --- Gather the information about the edges, filter them.
-            Segment currSeg = segments.get(i);
-            NodeInfo currTarget = currSeg.getTarget();
-
-
-            // CAUSAL: Keep edges C -> T not already seen.
-            // Then, add the new edges in the set of seen edges.
-            List<NodeInfo> causeTarget =
-                    currSeg.getCausal().stream()
-                            .filter(c -> !causalEdges.contains(new Edge(c, currTarget)))
-                            .collect(Collectors.toList());
-
-            causeTarget.forEach(ni -> causalEdges.add(new Edge(ni, currTarget)));
-
-
-            // ANTICAUSAL: Keep edges T -> C not already seen
-            // Then, add the new edges in the set of seen edges.
-            List<NodeInfo> causedByTarget =
-                    currSeg.getAntiCausal().stream()
-                            .filter(ac -> !causalEdges.contains(new Edge(currTarget, ac)))
-                            .collect(Collectors.toList());
-
-            // Az
-            for(int iter = 0; iter < causedByTarget.size(); iter++) {
-            	NodeInfo _node = causedByTarget.get(iter);
-            	if(_node.nodeName.startsWith("ubgs92jh"))
-            		causedByTarget.remove(_node);
-            }
-            
-            causedByTarget.forEach(ni -> causalEdges.add(new Edge(currTarget, ni)));
-
-
-            // COMMON EFFECT: Always say alternate causes, i.e. no filter.
-            // Still add the links in the set of seen edges
-            Map<NodeInfo, Set<NodeInfo>> commonEffect = currSeg.getCommonEffect();
-
-            commonEffect.forEach((effect, altCauses) -> {
-                causalEdges.add(new Edge(currTarget, effect));
-                altCauses.forEach(c -> causalEdges.add(new Edge(c, effect)));
-            });
-
-
-            // FORWARD LOOKING: look in the next segments for causal edges currentTarget -> nextTarget
-            // Pull them back in 'causedByTarget'
-            
-//            for (int j = i + 1; j < segments.size(); ++j) {
-//                Segment nextSegment = segments.get(j);
-//                NodeInfo nextTarget = nextSegment.getTarget();
-//                Edge t_nt = new Edge(currTarget, nextTarget);
-//                if (nextSegment.getCausal().contains(currTarget) && !causalEdges.contains(t_nt)) {
-//                    causedByTarget.add(nextTarget);
-//                    causalEdges.add(t_nt);
-//                }
-//            }
-
-            // --- --- --- Text Generation
-
-            // Do connection between parts
-            boolean connect = false;
-
-            printer.openPar();
-
-            // CAUSAL: EFFECTS -> TARGET
-            if (!causeTarget.isEmpty()) {
-                connect = true;
-                //
-                printer.sentenceForceIN(); // Starting with nodes, so we are in a sentence
-                printListNode(causeTarget, this::printNode, "and");
-                printer.addVerbModal("cause", Printer.Mode.CAN);
-                printNode(currTarget);
-                //printer.eos().lineBreak();
-                printer.eos();
-            }
-
-
-            // ANTICAUSAL: EFFECTS <- TARGET
-            if (!causedByTarget.isEmpty()) {
-                // Connect
-                if (connect) {
-                    printer.addText(getConnector());
-                }
-                connect = true;
-                //
-                printer.sentenceForceIN(); // Starting with nodes, so we are in a sentence
-                printNode(currTarget);
-                printer.addVerbModal("cause", Printer.Mode.CAN);
-                printListNode(causedByTarget, this::printNode, "and");
-                //printer.addVerb("indicate", causedByTarget);
-                //printer.addVerb("indicate", causedByTarget);
-                //printer.addText((causedByTarget.size() > 1)? " are effects of ":" is an effect of ");
-               
-                //printer.eos().lineBreak();
-                printer.eos();
-            }
-
-            // COMMON EFFECT
-            if (!commonEffect.isEmpty()) {
-                // For each key, i.e. each common effect
-                for (NodeInfo effect : commonEffect.keySet()) {
-                    List<NodeInfo> altCauses = new ArrayList<NodeInfo>(commonEffect.get(effect));
-
-                    // Connect
-                    if (connect) {
-                        printer.addText(getConnector());
-                    }
-                    connect = true;
-
-                    // Current target can cause effect, ...
-                    printer.sentenceForceIN(); // Starting with nodes, so we are in a sentence
-                    printNode(currTarget);
-                    printer.addVerbModal("cause", Printer.Mode.CAN);
-                    printNode(effect);
-                    printer.addTextRaw(", and");
-
-                    // ... and [list of altcauses] is/are ...
-                    printListNode(altCauses, this::printNode, "and");
-                    printer.addVerb("be", altCauses);
-
-                    // alternative(s) causes of effect
-                    if (altCauses.size() < 2) {
-                        printer.addText("another cause of");
-                    } else {
-                        printer.addText("other causes of");
-                    }
-                    printNode(effect);
-                    //printer.eos().lineBreak();
-                    printer.eos();
-                }
-            }
-            printer.closePar();
-        }
-
-
-        // --- --- --- After all the segments: create a table
-        printer.srcnl()
-        .addH2("Initial and Updated Probabilities")
-                .openPar()
-                .addText("The following table contains the initial probabilities in the absence of " + 
-                		"evidence, and the updated probabilities after the evidence has been " + 
-                		"considered").eos().srcnl()
-                .closePar();
-
-        printer.openTable();
-        // Header
-//        printer.openTableHead().openTableRow()
-//                .tableHeader("Node = State").onLast(Printer.Comp::doRaw)
-//                .tableHeader("Probability").onLast(Printer.Comp::doRaw)
-//                .closeTableRow().closeTableHead();
-        
-        printer.openTableHead().openTableRow()
-        .tableHeader("Type").onLast(Printer.Comp::doRaw)
-        .tableHeader("Variable = State").onLast(Printer.Comp::doRaw)
-        .tableHeader("Initial Probability").onLast(Printer.Comp::doRaw)
-        .tableHeader("Updated Probability").onLast(Printer.Comp::doRaw)
-        .closeTableRow().closeTableHead();
-
-        
-        
-        // Body
-        printer.openTableBody();
-        allNodeInfos.stream().sorted(Comparator.comparing(a -> a.nodeName)).sorted(Comparator.comparing(a -> a.nodeName.equals(ultimateTarget) ? 0 : a.isEvidence() ? 1 : 2)).forEach(ni -> {
-        	
-        	if(!ni.nodeName.startsWith("ubgs92jh")) {
-        	
-	        	printer.openTableRow();
-	
-	            String typeLabel = "Ordinary";
-	            if (ni.nodeName.equals(ultimateTarget)) {
-	            	typeLabel  = "Target";
-	            }
-	            else if (ni.isEvidence()) {
-	            	typeLabel = "Evidence";
-	            }
-	            printer.tableData(typeLabel).onLast(Printer.Comp::doRaw);
-	            
-	            printer.openTableData();
-	            printNodeState(ni);
-	            printer.closeTableData();
-	
-	            boolean adjPhrase = true;
-//	            printer.tableData(PutVerbalWord_Az(ni.prior, false, adjPhrase) + " (" + getPercentFormat(ni.prior) + "%)").onLast(Printer.Comp::doRaw);
-//	            printer.tableData(PutVerbalWord_Az(ni.posterior, false, adjPhrase) + " (" + getPercentFormat(ni.posterior) + "%)").onLast(Printer.Comp::doRaw);
-	            
-	            printer.tableData(getPercentFormat(ni.prior) + "% (" + PutVerbalWord_Az(ni.prior, false, adjPhrase) + ")").onLast(Printer.Comp::doRaw);
-	            printer.tableData(getPercentFormat(ni.posterior) + "% (" + PutVerbalWord_Az(ni.posterior, false, adjPhrase) + ")").onLast(Printer.Comp::doRaw);
-
-	
-	            printer.closeTableRow();
-        	}
-        });
-        printer.closeTableBody();
-        // End of table
-        printer.closeTable();
-    }
-
-    }
-
+    
     public String printBNTextwithCausalityOnly(List<Rule> orderedText, Set<NodeInfo> allNodeInfoList) {
     	//printer.addH2("Preamble");
     	printer.addH2("Bayesian Network Structure");
@@ -405,7 +175,6 @@ public class TextGenerator {
 
     	return printer.realize();
     }
-
 
     private String GetTextFromRule(Rule rule) {
 		String retStr = "";
