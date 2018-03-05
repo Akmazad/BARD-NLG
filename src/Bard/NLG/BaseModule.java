@@ -173,11 +173,6 @@ public class BaseModule {
 			//------- customizing this for long verbosity
 			if (verbosity.equals("long")) {
 				//------------------- Text for BN structure + Probability Tables [with FAKE evidence for all nodes]
-				Hashtable fake_conditionedNodeList = makeFakeConditionedNodeList(targetList, conditionedNodeList);
-				boolean fake_it_Philip = true;
-
-				//String bnText = getTextforBNstructure(fake_it_Philip, fake_conditionedNodeList, qNodeInfo.get(0), conditionedNodeList, _BNgraph);
-				//String bnText = getTextforBNstructure(backupConditionedList, targetList);
 				String bnText = getTextforBNstructure_AgendaAlgo(targetList);
 				FinalOutputString = "<h1 class=\"target\">Target" + ((targetList.size() > 1)?"s: ":": ") + escapeHtml(getTargetList(targetList)) + "</h1>\n <div class=\"summary\"> \n <h1>Summary</h1>\n" + escapeHtml(FinalOutputString) + bnText + "</div>";
 
@@ -242,18 +237,10 @@ public class BaseModule {
 			// --------------------- End
 
 			//------------------- Text for BN structure + Probability Tables [with FAKE evidence for all nodes]
-//			Hashtable fake_conditionedNodeList = makeFakeConditionedNodeList(targetList, conditionedNodeList);
-//			boolean fake_it_Philip = true;
-//			if (fake_it_Philip)
-//				//outputResponse_for_A_Target += getTextforBNstructure(fake_it_Philip, fake_conditionedNodeList, queryNode, conditionedNodeList, _BNgraph);
-				//outputResponse_for_A_Target += getTextforBNstructure(backupConditionedList);
 				outputResponse_for_A_Target += getTextforBNstructure_AgendaAlgo(backupConditionedList);
 			// --------------------- End 
 
 			// --------------------- Reasoning steps (for Detailed Explanation only) -------------------------------
-//			fake_it_Philip = false;
-//			fake_conditionedNodeList.clear();
-
 			if (conditionedNodeList.size() > 0) {
 				set_findings_of_ConditionedNodes_3(conditionedNodeList, MakeNodeList(conditionedNodeList));
 				outputResponse_for_A_Target += System.getProperty("line.separator").toString();
@@ -487,30 +474,6 @@ public class BaseModule {
 			
 			SB_DB_infos = impactAnalysisOfAsegment(rawSeg.target, segOtherNodeList, semanticStates, explainableStates, conditionedNodeList, impactChoice, _BNGraph);
 			
-//			if (!fake_it_Philip)							// Do impact analysis for Real
-//				SB_DB_infos = impactAnalysisOfAsegment(rawSeg.target, segOtherNodeList, semanticStates, explainableStates, conditionedNodeList, impactChoice, _BNGraph);
-//			else {											// No impact analysis, but put something in "SB"-"DB" batches
-//				Set<String> SB = new HashSet<String>();
-//				Set<String> DB = new HashSet<String>();
-//
-//				SB.add(segOtherNodeList.get(0));			// By default put the first node in the segment in the SB, and remaining in the DB
-//				for (int it = 1; it < segOtherNodeList.size(); it++)
-//					DB.add(segOtherNodeList.get(it));
-//
-//				Map<Set<String>, Double> tempMap = new HashMap<>();
-//				tempMap.put(SB, 999.0);
-//				SB_DB_infos.put("sb", tempMap);
-//
-//				if (!DB.isEmpty()) {
-//					tempMap = new HashMap<>();
-//					tempMap.put(DB, -999.0);
-//					SB_DB_infos.put("db", tempMap);
-//				} else {
-//					tempMap = new HashMap<>();
-//					SB_DB_infos.put("db", tempMap);
-//				}
-//			}
-
 			Set<String> SB = new HashSet<>();
 			Set<String> DB = new HashSet<>();
 
