@@ -43,7 +43,7 @@ public class BaseModule {
 
   // global variables
   private static Hashtable<String, String> CommonEffectNodes_and_theirPath = new Hashtable<String, String>();
-  private static Hashtable backupConditionedList = new Hashtable<>();
+  private static Hashtable<String, Hashtable<String, Double>> backupConditionedList = new Hashtable<>();
   private static ArrayList<String> allBNnodes = new ArrayList<>();
   private static ArrayList<String> blockedEvidenceList = new ArrayList<>();
   public static ArrayList<ArrayList<String>> blockedEvidenceNodeInfoList = new ArrayList<>();
@@ -63,7 +63,7 @@ public class BaseModule {
   public String runNLG(JSONObject config, Path p) throws Exception {
       String filename = config.getString("netPath");
       Path netPath = p.getParent().resolve(filename);
-      System.err.println(netPath);
+      System.out.println(netPath);
       jsonPath = p;
       return runNLG(new Net(netPath.toString()), config);
   }
@@ -72,7 +72,7 @@ public class BaseModule {
   public String runNLG(Net net, JSONObject config) throws Exception {
       _net = net;
 
-      Hashtable conditionedNodeList = new Hashtable();
+      Hashtable<String, Hashtable<String, Double>> conditionedNodeList = new Hashtable();
       ArrayList<ArrayList<String>> targetList = new ArrayList<>();
 
       Hashtable backgroundNodeList = new Hashtable();
@@ -90,7 +90,12 @@ public class BaseModule {
       		}else {														// Add conditioned nodes to their own list
       			HashMap tempMap = (HashMap) node.getJSONObject("conditioned").toMap();
       			Hashtable tempTable = new Hashtable<>();
-      			tempTable.putAll(tempMap);
+      			Set<String> states = tempMap.keySet();
+      			for(String state:states) {
+      				Double Probval = Double.parseDouble(tempMap.get(state).toString());
+      				tempTable.put(state, Probval);
+      			}
+      			
       			conditionedNodeList.put(node.getString("name"), tempTable);
       		}
       	}
@@ -1620,14 +1625,18 @@ private String getTargetList(ArrayList<ArrayList<String>> targetList) {
                   tempSum += _knownValue;
                   tempSum = ((double) Math.round((tempSum) * 1000.0) / 1000.0);                    /* set that known value into the corresponding node states */
 
-                  if (tempSum > 1.0) {
-                      if ((tempSum - 1.0) <= epsilon)
-                          tempSum = 1.0;
-                      else {
-                          Exception exp = new NLGException("Total probability has become > 1.0 so far !!");
-                          throw exp;
-                      }
-                  }
+//                  if (tempSum > 1.0) {
+//                      if ((tempSum - 1.0) <= epsilon)
+//                          tempSum = 1.0;
+//                      else {
+//                          Exception exp = new NLGException("Total probability has become > 1.0 so far !!");
+//                          throw exp;
+//                      }
+//                  }
+                  if(((double) Math.round((Math.abs(tempSum - 1.0)) * 1000.0) / 1000.0)<= epsilon)
+                      tempSum = 1.0;
+
+
                   int stateIndex = _node.getState(_knownState).getIndex();
                   _likelihoodVector[stateIndex] = _knownValue;
                   _flag[stateIndex] = true;

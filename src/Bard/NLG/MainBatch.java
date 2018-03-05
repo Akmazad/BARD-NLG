@@ -45,6 +45,7 @@ public class MainBatch {
 		// Will contains all the file to take care of
 		List<Path> paths = Stream.of(
 
+			
 				"SingleNodeNet.json",
 				 
 				// IARPA problems
@@ -117,6 +118,12 @@ public class MainBatch {
 				 "Oil_Spillage.json - temp1.json",
 				 "ChestClinic_noEvidence.json",		// bug: SHOULD NOT HAPPEN: Could not find a cutting point in a 2 CE
 				 "The_Spider - [recursion error].json",
+				 
+				 // new NETs that Generated Error
+				 "temp81-30.json",
+				 "temp383-67.json",
+				 "temp395-104.json",
+
 				""
 				).filter(p->!p.equals("")).map(dirPath::resolve).collect(Collectors.toList());
 
