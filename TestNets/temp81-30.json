@@ -1,0 +1,40 @@
+{
+    "netPath": "temp81.cmp",
+    "nodes": [
+        {
+            "name": "Test 1",
+            "conditioned": {
+                "T": 1
+            },
+            "background": false
+        },
+        {
+            "name": "Test 2",
+            "conditioned": {
+                "T": 1
+            },
+            "background": false
+        },
+        {
+            "name": "Test 3",
+            "conditioned": {
+                "T": 1
+            },
+            "background": false
+        },
+        {
+            "name": "Test 4",
+            "conditioned": {
+                "T": 1
+            },
+            "background": false
+        }
+    ],
+    "target": [
+        {
+            "name": "Test 5",
+            "state": "T"
+        }
+    ],
+    "verbosity": "long"
+}

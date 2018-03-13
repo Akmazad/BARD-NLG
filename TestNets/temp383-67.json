@@ -1,0 +1,45 @@
+{
+    "netPath": "temp383.cmp",
+    "nodes": [
+        {
+            "name": "Test 0",
+            "conditioned": {
+                "T": 1
+            },
+            "background": false
+        },
+        {
+            "name": "Test 1",
+            "conditioned": {
+                "T": 1
+            },
+            "background": false
+        },
+        {
+            "name": "Test 6",
+            "conditioned": {
+                "T": 1
+            },
+            "background": false
+        }
+    ],
+    "target": [
+        {
+            "name": "Test 4",
+            "state": "T"
+        },
+        {
+            "name": "Test 5",
+            "state": "T"
+        },
+        {
+            "name": "Test 3",
+            "state": "T"
+        },
+        {
+            "name": "Test 2",
+            "state": "T"
+        }
+    ],
+    "verbosity": "long"
+}

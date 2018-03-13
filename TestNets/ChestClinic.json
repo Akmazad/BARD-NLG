@@ -5,7 +5,7 @@
 		{"name": "VisitAsia", "conditioned": {"yes": 1.0, "no": 0.0}, "background": false},
 		{"name": "XRay", "conditioned": {"yes": 1.0, "no": 0.0}, "background": false},
 		{"name": "Tuberculosis", "conditioned": {"yes": 1.0, "no": 0.0}, "background": false},
-		{"name": "Dyspnea", "conditioned": {"yes": 0.8, "no": 0.2}, "background": false},
+		{"name": "Dyspnea", "conditioned": {"yes": 1.0, "no": 0.0}, "background": false},
 		{"name": "Bronchitis", "background": true},
 		{"name": "Dyspnea", "background": true},
 		{"name": "TbOrCa", "background": true}
