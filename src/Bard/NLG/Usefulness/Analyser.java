@@ -18,7 +18,7 @@ public class Analyser {
 
     // --- --- --- Constructor
 
-    public Analyser(Net net, String target, String targetState, Map<String, String> evidences){
+    public Analyser(Net net, String target, String targetState, Map<String, String> evidences) {
         this.net = net;
         this.target = target;
         this.targetState = targetState;
@@ -49,10 +49,10 @@ public class Analyser {
         // Step 2 {}, {A} (+) B => {}, {A}, {B}, {A, B}
         // Step 3 {}, {A}, {B}, {A, B} (+) C => {}, {A}, {B}, {A, B}, {C}, {A, C}, {B, C}, {A, B, C}
         // etc... As expected, the size of the set is doubling at each step (|P(X)| = 2^|X|)
-        for(String newEv: ev) {
+        for (String newEv : ev) {
             // Warning: copy needed as we are updating "deltas" while iterating.
             Set<Set<String>> currentSets = Tools.freeze(deltas.keySet());
-            for(Set<String> cs: currentSets){
+            for (Set<String> cs : currentSets) {
                 // Copy and add:
                 Set<String> newSet = new HashSet<>(cs);
                 newSet.add(newEv);
@@ -61,12 +61,12 @@ public class Analyser {
                 // WARNING: clear all evidences!
                 net.clearAllEvidence();
                 // Then set all current evidences
-                for(String nodeName: newSet){
+                for (String nodeName : newSet) {
                     String stateName = evidences.get(nodeName);
                     net.getNode(nodeName).setEvidenceState(stateName);
                 }
                 net.compile();
-                Double delta = Math.abs(net.getNode(target).getBelief(targetState)-tNode0);
+                Double delta = Math.abs(net.getNode(target).getBelief(targetState) - tNode0);
 
                 // --- --- --- Update the map
                 deltas.put(newSet, delta);
@@ -77,15 +77,15 @@ public class Analyser {
 
         Map<String, double[]> res = new HashMap<>();
 
-        for(String evName: evidences.keySet()){
+        for (String evName : evidences.keySet()) {
 
-            double [] a = new double[2];
+            double[] a = new double[2];
             double wiAcc = 0;
             double woAcc = 0;
             int wiNb = 0;
             int woNb = 0;
 
-            for(Map.Entry<Set<String>, Double> entry: deltas.entrySet()){
+            for (Map.Entry<Set<String>, Double> entry : deltas.entrySet()) {
                 if (entry.getKey().contains(evName)) {
                     wiAcc += entry.getValue();
                     wiNb++;
@@ -95,14 +95,15 @@ public class Analyser {
                 }
             }
 
-            a[0] = wiAcc/wiNb;
-            a[1] = woAcc/(woNb);
+            a[0] = wiAcc / wiNb;
+            a[1] = woAcc / (woNb);
 
-            System.out.println(evName + " WITH " + a[0] + " WITHOUT " + a[1]);
+            // System.out.println(evName + " WITH " + a[0] + " WITHOUT " + a[1]);
 
             res.put(evName, a);
-
         }
+
+        return res.entrySet().stream().filter(e -> e.getValue()[0] > e.getValue()[1]).map(Map.Entry::getKey).collect(Collectors.toSet());
 
 
 
@@ -184,23 +185,11 @@ public class Analyser {
             System.out.println("WITHOUT");
             withoutSorted.forEach( e -> System.out.println(e.getKey() + " => " + e.getValue()));
 
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         return Collections.emptySet();
+
+*/
+
 
     }
 
