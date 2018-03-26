@@ -1,0 +1,644 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage[linesnumbered,ruled,vlined,algo2e]{algorithm2e}
+\usepackage{amsmath}
+\usepackage[all]{xy}
+
+\usepackage{a4wide}
+
+\usepackage{enumitem}
+
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+
+\usepackage{graphicx}
+
+%--- --- --- --- DEFINITIONS
+\newcounter{definition}[section] % Create counter
+\renewcommand{\thedefinition}{\thesection.\arabic{definition}}
+
+\newenvironment{definition}[1][]{\refstepcounter{definition}% Increment counter
+  \ifx&#1& \textbf{Definition~\thedefinition}\newline
+  \else \textbf{Definition~\thedefinition}~~\emph{(#1)}\newline
+\fi}{\medskip}
+
+%--- --- --- --- myRuleS
+\newcounter{myRule}[section] % Create counter
+\renewcommand{\themyRule}{\thesection.\arabic{myRule}}
+
+\newenvironment{myRule}{%
+  \refstepcounter{myRule}% Increment counter
+  \textbf{Requirement~\themyRule}\newline
+}{\medskip}
+
+\newcommand*{\say}[1]{``{#1}''}
+\newcommand*{\ie}{i.e.\ }
+\newcommand*{\eg}{e.g.\ }
+\newcommand*{\rar}{\rightarrow}                         % ->, définition de fonction/application
+\newcommand*{\conj}{\wedge}                             % ∧, and
+\renewcommand*{\implies}{\Rightarrow}                   % =>, implies
+
+\DeclareMathOperator{\edges}{edges}
+\DeclareMathOperator{\nodes}{nodes}
+\DeclareMathOperator{\antecedents}{ant}
+\DeclareMathOperator{\consequents}{cons}
+\DeclareMathOperator{\descendants}{desc}
+
+\usepackage[bottom]{footmisc}       %
+\raggedbottom{}                       % Tasser le texte vers le haut sur une page
+\usepackage[all]{nowidow}
+
+\begin{document}
+
+\section{Network Structure}
+
+This algorithm attempts to find a meaningful way to present the \emph{structure} of a Bayesian Network (BN).
+In the context of our work, we choose to see a directed edge of a BN as a causal relationship between two nodes,
+\eg{} the edge $A\rar B$ is interpreted as \say{$a$ causes $b$}.
+Here, $a$ is called the \say{\emph{antecedent}} while $b$ is called the \say{\emph{consequent}}.
+Antecedents and consequents give us our first \emph{requirement}:
+a consequent can be stated if and only if all of its antecedents have been stated before.
+In other words, nodes without antecedents can be seen as logical facts, and edges as logical implications
+with the extra requirement that all \emph{antecedents} must be fulfilled.
+This means that the two edges $a\rar c$ and $b\rar c$ shall be seen as one implication $a\conj b \implies c$,
+rather that as the two distinct implications $a\implies c$ and $b\implies c$.
+
+\subsection{Overview}
+
+Our algorithm takes as input a set of directed edges from a Bayesian Network,
+and outputs an \emph{ordered list of rules} (see definition~\ref{def:rule}).
+The structure of the network is then explain by producing a text based on this list.
+For example:
+
+\begin{center}
+  \begin{tabular}{ll}
+    \begin{minipage}{0.30\textwidth}
+      \[
+      \xymatrix{%
+        a \ar[d] \ar[rd]  &  \\
+        b \ar[r]          & c
+      }
+      \]
+    \end{minipage}
+    &
+    \begin{minipage}{0.60\textwidth}
+    \begin{tabular}{ll}
+      input:  & $ \{a\rar b, a\rar c, b\rar c\} $ \\
+      output: & $ [a\rar b, a\conj b\rar c] $
+    \end{tabular}
+    \end{minipage}
+  \end{tabular}
+\end{center}
+
+Which can be read as \say{a can cause b, and a and b can cause c}.
+We do not address the translation to English here;
+Our main concern is to produce \say{a good enough} ordered list of rules.
+
+\subsubsection{Definitions}
+
+\begin{definition}[Good enough]\label{def:ge}
+  Subjective notion mainly carved by what we (as a subset of the human beings) would like to avoid.
+  In our case, a result is good enough when it fulfils a list of \emph{requirements} that we will
+  describe.\\
+  A better \emph{good enough} evaluation can be done through user studies.
+\end{definition}
+
+\begin{definition}[Edges and nodes of a Bayesian Network]
+  A Bayesian Network $B$ is based on a directed graph.
+  We note \say{$\edges(B)$} its set of directed edges,
+  and \say{$\nodes(B)$} its set of nodes.
+  An edge between two nodes $a$ and $b$ of $B$ is noted $a\rar b$,
+  and if we have $c\rar d\in\edges(B)$,
+  then we automatically have $\{c,d\}\subseteq\nodes(B)$.
+\end{definition}
+
+\begin{definition}[Antecedent]
+  Let $B$ be a Bayesian Network.
+  For a node $a\in\nodes(B)$, let $N$ be the set of nodes such that
+  $\forall n\in{}N,\ n\in\nodes(B)\conj n\rar a \in \edges(B)$.\\
+  We say that $N$ is the set of \say{\emph{antecedents}} of $a$,
+  noted \say{$\antecedents(a)$}.
+\end{definition}
+
+\begin{definition}[Ground node]
+  Let $B$ be a Bayesian Network.
+  A \say{ground node} $a$ is a node without antecedent, \ie{} we have $\antecedents(a) = \emptyset$.
+  We also say that $a$ is \say{grounded}.
+  Because Bayesian Networks are finite directed acyclic graphs,
+  we have the guarantee that at least one node of any network is grounded.
+\end{definition}
+
+\begin{definition}[Consequent]
+  Let $B$ be a Bayesian Network.
+  For a node $a\in\nodes(B)$, let $N$ be the set of nodes such that
+  $\forall n\in{}N,\ n\in\nodes(B)\conj a\rar n \in \edges(B)$.\\
+  We say that $N$ is the set of \say{\emph{consequents}} of $a$,
+  noted \say{$\consequents(a)$}.
+\end{definition}
+
+\begin{definition}[Descendants]
+  Let $B$ be a Bayesian Network.
+  The \say{\emph{descendants}} of a node $n \in \nodes(B)$
+  is the set $\descendants(n)$ made of its consequents $\consequents(n)$, plus their consequents, and recursively.
+\end{definition}
+
+\begin{definition}[Depth]\label{def:depth}
+  Let $B$ be a Bayesian Network, and let $n \in \nodes(B)$.
+  The \say{\emph{depth}} of $n$ is the cardinality of $\descendants(n)$,
+  \ie{} the total number of nodes \say{reachable} from $n$.
+\end{definition}
+
+\begin{definition}[Rule]\label{def:rule}
+  A rule has the general form:
+  \begin{align*}
+    x_1 \conj x_2 \conj \dots \conj x_n &\rar y_1 \conj y_2 \conj \dots \conj y_m
+  \end{align*}
+  Following the previous definition, the $x_i$ are called the \emph{antecedents},
+  and the $y_j$ the \emph{consequents}.
+  A rule is \say{\emph{usable}} (or \say{\emph{trigerrable}}) if and only if all of
+  its antecedents are \emph{available}.
+  When a rule is used, its consequents become available,
+  and ground nodes \emph{can be made available} at any time.
+\end{definition}
+
+Note the special condition over ground nodes: they are not available by default, but can be made available \say{on demand}.
+In the following examples, we usually consider that ground nodes are available.
+However, the distinction will be important when discussing ordering, Section~\ref{sec:order}.
+
+
+\subsubsection{Requirements}
+
+The definition~\ref{def:rule} is a really general definition;
+In our case, rules must comply with several requirements that we are going to define now.
+We will justify them according to the definition~\ref{def:ge}.
+Let's start with our introduction's first requirement.
+
+\textbf{Warning:} in the following, do not mix up rules and edges:
+Some requirements seems trivial but are necessary constraints as rules are not edges!
+
+\medskip
+\begin{myRule}\label{rule0}
+  A node from the Bayesian Network can be stated if and only if all of its antecedents have been stated before
+  (\ie{} are available).
+  Given a set of initial grounded nodes, our output must be a list of \say{trigerrable} rules.
+  When a rule is triggered, it makes its consequents available for the following rules.
+\end{myRule}
+
+\begin{myRule}\label{rule1}
+  A node from the Bayesian Network can only appears once as a rule's consequent in the output.
+\end{myRule}
+
+For example:
+
+\begin{center}
+  \begin{minipage}{0.25\textwidth}
+      \[
+      \xymatrix{%
+        a \ar[d] \ar[rd]  &  \\
+        b \ar[r]          & c
+      }
+      \]
+  \end{minipage}
+  \begin{minipage}{0.74\textwidth}
+    \begin{tabular}{lll}
+      $ [ b \rar c, a\rar c, a \rar b] $  & \xmark{} Req.~\ref{rule0} & $b$ is not grounded \\
+      $ [ a \rar b, a\rar c, b \rar c] $  & \xmark{} Req.~\ref{rule1} & $c$ appears twice   \\
+      $ [ a\conj b\rar c, a \rar b] $     & \xmark{} Req.~\ref{rule0} & $b$ is not grounded \\
+      $ [ a \rar b, a\conj b\rar c] $     & \cmark{}                  & $a$ is grounded
+    \end{tabular}
+  \end{minipage}
+\end{center}
+
+Requirements~\ref{rule0} and~\ref{rule1} together constrain the rules themselves:
+because all antecedents must be stated before a consequent, and because a consequent can only appears once,
+a rule always contains all the antecedents of its consequents.
+However, this does not prevent us from having extra antecedents in our rules.
+
+\medskip
+\begin{myRule}\label{rule2}
+ Given a node from a Bayesian Network, its set of antecedents in a rule are exactly the set of antecedents
+ from the Bayesian Network, and nothing more.
+\end{myRule}
+
+\begin{myRule}\label{rule3}
+  Our output list should be as small as possible.
+\end{myRule}
+
+Use of requirements~\ref{rule2} and~\ref{rule3} are illustrated below:
+
+\begin{center}
+  \begin{minipage}{0.25\textwidth}
+    \xymatrix{%
+                        & a   &   \\
+        b\ar[ur]\ar[dr] &     & c\ar[ul]\ar[dl] \\
+        e\ar[r]         & d   &
+    }
+  \end{minipage}
+  \begin{minipage}{0.74\textwidth}
+    \begin{tabular}{lll}
+      $ [ b\conj c\conj e \rar a \conj d] $           & \xmark{} Req.~\ref{rule2} & $e\notin \antecedents(a)$ \\
+      $ [ b\conj c \rar a, b\conj c \conj e \rar d] $ & \cmark{}                  & \\
+    \end{tabular}
+  \end{minipage}
+
+  \medskip
+
+  \begin{minipage}{0.25\textwidth}
+    \xymatrix{%
+                        & a   &   \\
+        b\ar[ur]\ar[dr] &     & c\ar[ul]\ar[dl] \\
+                        & d   &
+    }
+  \end{minipage}
+  \begin{minipage}{0.74\textwidth}
+    \begin{tabular}{lll}
+      $ [ b\conj c \rar a, b\conj c \rar d] $ & \xmark{} Req.~\ref{rule3} & not minimal \\
+      $ [ b\conj c \rar a \conj d] $          & \cmark{}                  & \\
+    \end{tabular}
+  \end{minipage}
+
+\end{center}
+
+Those 4 first requirements are pretty natural and mainly address the rules creation and their basic ordering.
+However, they are far from enough as the basic ordering constraints allow to produce
+arguably poor explanations.
+As a first intuition, notice that the two lists:
+\[ [ b\conj c \rar a, b\conj c \conj e \rar d] \quad \text{ and } \quad [ b\conj c \conj e \rar d, b\conj c \rar a] \]
+are both acceptable according to the current requirements.
+
+One of the main problem with the basic requirements is that they
+allow rules to be ordered in any way as long as they form a trigerrable sequence:
+while the \say{overall ordering} of the rules is correct, there is no concept of \say{current subject},
+\ie{} of \emph{grouping together related rules}.
+The explanation may \say{jump} from one part of the network to another, and then get back to the first part.
+This make the explanation hard to follow, hence not desirable.
+For example:
+
+\medskip
+
+\begin{center}
+  \resizebox{0.25\textwidth}{!}{%
+    \begin{minipage}{0.3\textwidth}
+    \[
+    \xymatrix{%
+                & a\ar[ld]\ar[rd] &   & e\ar[ld]\ar[d]  \\
+      b \ar[d]  &                 & d & f\ar[d]         \\
+      c         &                 &   & g
+    }
+    \]
+    \end{minipage}
+  }
+  \begin{minipage}{0.74\textwidth}
+    \begin{tabular}{ll}
+      Bad:    & $a\rar b$, $e\rar f$, $b\rar c$, $a\conj e\rar d$, $f \rar g$\\
+      Better: & $a\rar b$, $b\rar c$, $e\rar f$, $f\rar g$, $a\conj e\rar d$ \\
+    \end{tabular}
+  \end{minipage}
+\end{center}
+
+The nodes $a$ and $e$ are grounded which satisfy the dependencies of both $b$ and $f$.
+If we state $b$, the dependencies for $c$ and $f$ are satisfied, \ie{} we can now state $f$.
+However, this feels unnatural as we switch into an other branch of the network;
+it is better to state $c$ immediately after $b$.
+
+\medskip
+\begin{myRule}\label{rule4}
+  The rules should be ordered \say{by branches},
+  \ie{} by giving priority to the rules using the nodes made the most recently available.
+\end{myRule}
+
+This requirement tightens a bit more the field of possibilities.
+However, we still do not have a unique ordering.
+All the followings are possible:
+\[
+\begin{array}{l}
+  {[a\rar b, b\rar c, e\rar f, f\rar g, a\conj e\rar d]} \\ % Warning: must put { } around [ ] because latex...
+  {[a\rar b, b\rar c, a\conj e\rar d, e\rar f, f\rar g]} \\
+  {[e\rar f, f\rar g, a\rar b, b\rar c, a\conj e\rar d]} \\
+  {[e\rar f, f\rar g, a\conj e\rar d, a\rar b, b\rar c]} \\
+  {[a\conj e\rar d, a\rar b, b\rar c, e\rar f, f\rar g]} \\
+  {[a\conj e\rar d, e\rar f, f\rar g, a\rar b, b\rar c]} \\
+\end{array}
+\]
+
+At this stage, all 6 possibilities are acceptable.
+But again, some seem more \say{natural} then the other,
+\eg{} alphabetical ordering (starting with the $a$ node before the $e$ node).
+
+
+\subsection{Order}\label{sec:order}
+
+Because our output is an ordered list of rules, the ordering is a crucial part of our algorithm.
+Of course, this is all heuristics, and other orderings would probably be equally good or better.
+We have two ways to control the order of the rule:
+First, we can choose which nodes are available, limiting triggerable rules.
+Second, the limited set of triggerable rules itself can be sorted.
+The final ordering is an interaction between all the ordering we are using in our algorithm.
+
+\begin{description}
+  \item[Ground Nodes Ordering]
+    By controlling in which order the ground nodes are \emph{made available} (cf definition~\ref{def:rule}),
+    we can control how the explanation starts, and then partially control the flow of the explanation.
+    The primeria criterion is the depth of a node, in \emph{decreasing} order (hence nodes with greatest depth come first).
+    On tie, the alphabetical order is used.
+    We use the depth as a proxy to the importance of a node (at least, visual importance in the graph);
+    In this respect, starting with greatest depth allows to first focus on \say{big parts} of the network.
+
+  \item[Consequents Ordering]
+    Consequent are sorted by \emph{increasing} depth (so, in the opposite order of the ground nodes), and then
+    alphabetically. After selecting a \say{big part} to talk about with the ground node, starting within that big
+    part with small depth potentially allows to first state \say{visually obvious} things before digging further.
+    When a rule is triggered, its consequents are made available one by one according to this ordering.
+
+  \item[Rules Ordering]
+    Even when nodes are introduced in a controlled manner, several rules may be triggerable at the same time.
+    To select them, we compute a score $s$.
+    Let $M$ be the cardinality of the largest consequent set among all rules:
+    \[
+      s(x_1 \conj \dots \conj x_n \rar y_1 \conj \dots \conj y_m) = n\times{}M+m
+    \]
+    The rule with the lowest score is triggered; on tie, an \textbf{arbitrary rules is chosen}\footnote{%
+      This may be improved in the future, mainly based on the antecedents alphabetical order
+      --- but first, see \say{Antecedents Ordering}.
+    }.
+    The effect of this score is to compute a number from a 2 dimensions value $(|\antecedents|, |\consequents|)$,
+    with the number of antecedents being the main criterion, hence the multiplication by the maximal cardinality
+    of any consequent set.
+    Choosing the lowest score follows the same heuristic as for the \emph{Consequents Ordering}:
+    we try to start with the \say{visually obvious} edges.
+\end{description}
+
+In particular, our ordering helps us to group nodes (requirement~\ref{rule4}) by controlling the sequence
+in which nodes are made available.
+Let's see how this work on our example.
+
+\begin{center}
+  \resizebox{0.25\textwidth}{!}{%
+    \begin{minipage}{0.3\textwidth}
+    \[
+    \xymatrix{%
+                & a\ar[ld]\ar[rd] &   & e\ar[ld]\ar[d]  \\
+      b \ar[d]  &                 & d & f\ar[d]         \\
+      c         &                 &   & g
+    }
+    \]
+    \end{minipage}
+  }
+  \begin{minipage}{0.74\textwidth}
+    Output: $ [a\rar b, b\rar c, e\rar f, f\rar g, a\conj e\rar d] $
+  \end{minipage}
+\end{center}
+
+\textbf{Explanation:}
+\begin{enumerate}
+  \item Both $a$ and $e$ have the depth (of 3). We make $a$ available (alphabetical order).
+  \item $\{a\}$ is available, the only rule usable now is $a \rar b$, making $b$ available.
+  \item $\{a, b\}$ are available, and only $b\rar c$ can be triggered, making $c$ available.
+  \item $\{a, b, c\}$ are available, but no new rules can be triggered. We \emph{backtrack} to our list of ground nodes.
+  \item $\{a, b, c, e\}$ are available. Both $e \rar f$ and $a \conj e\rar d$ are triggerable.
+        Comparing their scores leads to choose $e\rar f$ ($1*1+1 < 2*1+1$).
+  \item $\{a, b, c, e, f\}$ are available, $f \rar g$ is triggered because of its score.
+  \item $\{a, b, c, e, f, g\}$ are available, $a \conj e\rar d$ is triggered.
+\end{enumerate}
+
+
+
+\subsection{Context}\label{sec:ctx}
+
+Now let's see an other example:
+\[
+  \xymatrix{%
+                    & f       &                 & g             &           \\
+    a\ar[r]\ar[ur]  & b\ar[r] & c\ar[r]\ar[ul]  & d\ar[r]\ar[u] & e\ar[ul]
+  }
+\]
+
+In that scenario, according to the ordering on rules, we will start with
+\[ [ a\rar b, b \rar c, c \rar d, d \rar e ] \]
+Because we just finished with $d$ and $e$,
+we would like to mention $d \conj e \rar g$ \emph{before} $a \conj c \rar f$.
+However, the actual ordering does not guarantee that.
+Several solutions are possible.
+One could be to modify the score function to take into account when the antecedents have been introduced,
+penalising the rules with \say{old} antecedents \textbf{(not tested, just an idea)}.
+An other solution, adopted in our case, is to use \say{\emph{local contexts}}.
+
+\medskip
+\begin{description}
+  \item[Context and Local Context]
+    Each rule $r$ is triggered inside a \say{\emph{context}} of available nodes.
+    When a rule $r$ is triggered, its consequents form a new \say{\emph{local context}},
+    which becomes the \say{current context}.
+    When no rule can be triggered in the current context, it is \say{folded back} into the previous context,
+    creating a new current context.
+\end{description}
+
+To denote the context, we use the following notation:
+\[
+  \{\text{current context}\}/\{\text{previous context}_n\},\dots,\{\text{previous context}_0\}
+\]
+
+Back to our example:
+\begin{enumerate}
+  \item In $\emptyset{}/$, the only ground node $a$ is selected
+  \item In $\{a\}/\emptyset$, the only rule is $a\rar b$
+  \item In $\{b\}/\{a\},\emptyset$, the only rule is $b\rar c$
+  \item In $\{c\}/\{b\},\{a\},\emptyset$, the only rule is $c\rar d$
+  \item In $\{d\}/\{c\},\{b\},\{a\},\emptyset$, the only rule is $d\rar e$
+  \item In $\{e\}/\{d\},\{c\},\{b\},\{a\},\emptyset$, no rule, folding back
+  \item In $\{d, e\}/\{c\},\{b\},\{a\},\emptyset$, the only rule is $d\conj e \rar g$
+  \item In $\{g\}/\{d, e\},\{c\},\{b\},\{a\},\emptyset$, no rule, folding back
+  \item In $\{d, e, g\}/\{c\},\{b\},\{a\},\emptyset$, no rule, folding back
+  \item In $\{c, d, e, g\}/\{b\},\{a\},\emptyset$, no rule, folding back
+  \item In $\{b, c, d, e, g\}/\{a\},\emptyset$, no rule, folding back
+  \item In $\{a, b, c, d, e, g\}/\emptyset$, the only rule is $a\conj c \rar f$
+  \item In $\{f\}/\{a, b, c, d, e, g\},\emptyset$, no rule, folding back
+  \item In $\{a, b, c, d, e, g, f\}/\emptyset$, no rule, folding back
+  \item In $\{a, b, c, d, e, g, f\}/$, End of process
+\end{enumerate}
+
+
+
+\subsection{Antecedents Ordering}
+The right-hand side of rules are the only unordered bit left!
+A nice (according to MH) property is to have the antecedents always presented in the same order,
+and in the order in which they were introduced.
+
+We number the nodes in the order in which they are made available.
+Then, we sort the antecedents in the rule before presenting them according to this order.
+
+
+\subsection{PseudoCode}
+
+\subsubsection{Creating the rules from the set of directed edges}
+
+From a of directed edges, it is easy to recover the set of all nodes $\nodes$,
+and to construct the $\antecedents(n)$ for every node $n\in\nodes$.
+Note that $\antecedents$ for ground nodes is the empty set.
+
+We first create the relation $R_0$, which map the antecedents to the consequents.
+The $\antecedents$ relation gives us the conjunction of antecedents for a given node;
+$R_0$ allows to give us the conjunction of consequents sharing the same antecedents.
+
+\begin{algorithm2e}
+  \caption{Creating the $R_0$ relation}
+  \KwIn{The set of nodes $\nodes$}
+  \KwIn{The $\antecedents(n)$ relation defined $\forall n \in \nodes$}
+
+  \KwResult{A mapping $R_0$ between a sets of nodes $(\antecedents \mapsto \consequents)$\\
+    By convention, $R_0[n] = \emptyset$ if the mapping is undefined.
+  }
+
+  \For{each node $n\in{}\nodes$}{%
+    $R_0 \gets R_0+(\antecedents(n) \mapsto R_0[n]\bigcup{}\{n\})$
+  }
+\end{algorithm2e}
+
+From $R_0$ we create the set of rule $R$.
+Note that the consequents in the rule are sorted, hence they should be implemented on a ordered collection such
+as a list; the antecedents are not sorted yet so a set is fine.
+
+\begin{algorithm2e}
+  \caption{Creating the set of rule $R$}
+  \KwIn{The relation $R_0$}
+  \SetKwFunction{sort}{Consequents\_Ordering}
+
+  \KwResult{A set $R$ of rules (see definition~\ref{def:rule})}
+
+  \For{each set of antecedents $\antecedents \in R_0$}{%
+    $\consequents \gets R_0[\antecedents]$ \;
+    $\consequents' \gets \sort(\consequents)$ (see Section~\ref{sec:order}) \;
+    $R \gets R \bigcup \{ \antecedents \rar \consequents' \}$
+  }
+\end{algorithm2e}
+
+\subsubsection{Getting the ground nodes}
+
+The ground nodes are in the relation $R$ above, associated to the empty set.
+In other word, the set of ground nodes is $R[\emptyset]$.
+The result of $R[\emptyset]$ is actually an ordered collection following the Consequents Ordering.
+We have to order them according to the Ground Node Ordering.
+
+\begin{algorithm2e}
+  \caption{Creating the ordered collection of ground nodes $G$}
+  \KwIn{The set of rules $R$}
+  \SetKwFunction{sort}{Ground\_Nodes\_Ordering}
+
+  \KwResult{An ordered collection of ground nodes}
+
+  $G \gets \sort(R[\emptyset])$
+\end{algorithm2e}
+
+\subsubsection{The main algorithm}
+
+The main algorithm is divided into two functions.
+Because the context idea is intrinsically recursive,
+we will define a corresponding recursive function.
+The other function is used to kick-start the process.
+
+The general recursive function takes 3 \say{In-Out} parameters and one \say{In} parameter.
+
+\begin{algorithm2e}
+  \caption{General recursive function sorting the rules}
+  \SetKwFunction{FMain}{getRulesRec}
+  \SetKwProg{Fn}{Function}{:}{}
+  \SetKwInOut{InOut}{InOut}
+  \SetKw{MR}{MR}
+  \SetKwFunction{sort}{Rules\_Ordering}
+  \SetKwFunction{asort}{Alpha\_Ordering}
+  \SetKwFunction{sortO}{$O$\_Ordering}
+  \SetKwFunction{size}{Size}
+  \SetKwFunction{add}{Append}
+
+  \tcp{Global}
+  \InOut{The ordered list of rules $L$}
+  \InOut{The set of rule $R$}
+  \InOut{The order in which node are introduced $O$}
+  \tcp{Local}
+  \KwIn{An ordered list of nodes to be added $N$}
+  \KwOut{The local context of available node $C$}
+
+  \Fn{\FMain{$L$, $R$, $O$, $N$}}{%
+    $C \gets \emptyset$ \;
+    \For{Next node in $n \in N$}{%
+      \tcp{Update the local context with next available node}
+      $C \gets C \bigcup \{n\}$ \;
+      \tcp{Get all rules matching the local context and sort them with the Rules Ordering}
+      $\MR \gets \sort(\text{rule}\ r \in R\ |\ \antecedents(r) \subseteq C)$ \;
+      \For{Next rule $r \in \MR$}{%
+        \tcp{Remove the rule from the global set}
+        $R \gets R - r$ \;
+        \tcp{Order $\antecedents$ alphabetically; Add in $O$ if absent}
+        \ForEach{$a \in \asort(\antecedents(r))$}{%
+          \lIf{$a \notin O$}{%
+            $O \gets O + (a\mapsto O.\size)$
+          }
+        }
+        \tcp{Sort the antecedents according to $O$, extends $L$}
+        $\antecedents(r) \gets \sortO(\antecedents(r))$ \;
+        $L.\add(r)$ \;
+        \tcp{Recursive call, updating $L$, $R$ and $O$}
+        $C \gets C \bigcup$ \FMain{$L$, $R$, $O$, $\consequents(r)$}\;
+        \tcp{Update \MR{} in the new context}
+        $\MR \gets \sort(\text{rule}\ r \in R\ |\ \antecedents(r) \subseteq C)$ \;
+      }
+    }
+  }
+
+\end{algorithm2e}
+
+\textbf{Explanation:}
+\begin{itemize}
+  \item $L$, $R$ and $O$ are global, \ie{} updated across evry call.
+    $L$ contains the final result, and grows as $R$ shrinks: a rule taken out from $R$ and put at the end of $L$,
+    producing an ordered list.
+    In the process, $O$ allow to sort the antecedents of the rules according to the order in wihch they were introduced.
+
+  \item After the recursive call, the local context $C$ is updated with the local context of the recursive call,
+    following Section~\ref{sec:ctx}.
+    The set of Matching Rule MR must be updated as new rules may be trigerrable.
+\end{itemize}
+
+\subsubsection{The entry points}
+
+The entry points only allow to launch the main algorithm.
+It using the ordere list of ground nodes $G$ instead of a consequents of some rule (see line 12 above).
+
+
+\begin{algorithm2e}
+  \caption{Entry point forn sorting the rules}
+  \SetKwFunction{FMain}{getRules}
+  \SetKwFunction{FMainR}{getRulesRec}
+  \SetKwProg{Fn}{Function}{:}{}
+  \SetKwInOut{InOut}{InOut}
+  \SetKw{MR}{MR}
+  \SetKwFunction{sort}{Rules\_Ordering}
+  \SetKwFunction{asort}{Alpha\_Ordering}
+  \SetKwFunction{sortO}{$O$\_Ordering}
+  \SetKwFunction{size}{Size}
+  \SetKwFunction{add}{Append}
+  \KwOut{The ordered list of rules}
+
+  \Fn{\FMain{$L$, $R$, $O$, $N$}}{%
+    $L \gets$ new empty list \;
+    $R \gets$ result of Algorithm 2 \;
+    $O \gets$ Empty map from node to integer \;
+    $G \gets$ result of Algorithm 3 \;
+
+    \FMainR{$L$, $R$, $O$, $G$} \;
+
+    \KwResult{$L$}
+  }
+
+\end{algorithm2e}
+
+
+
+
+\section{Network Segmentation}
+
+\end{document}
