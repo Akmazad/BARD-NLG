@@ -9,7 +9,6 @@
 
 package Bard.NLG.Segment;
 
-import Bard.NLG.Tools;
 import Bard.NLG.Segment.Graph.Graph;
 import Bard.NLG.Segment.Graph.Node;
 import Bard.NLG.Segment.Graph.Path;
@@ -75,7 +74,7 @@ public class Analyser extends Graph.Builder {
             // WARNING: removing duplicated -> this is how we deal right now with triangles...
             List<Node> myOrderedTargets = new ArrayList<>();
             myTrees.forEach(t -> {
-                myOrderedTargets.addAll(t.postFix(Function.identity()).stream().filter(n -> !n.isEvidence()).distinct().collect(Collectors.toList()));
+                myOrderedTargets.addAll(t.preFix(Function.identity()).stream().filter(n -> !n.isEvidence()).distinct().collect(Collectors.toList()));
             });
 
             // --- --- --- STEP 4: Get the markov blanket

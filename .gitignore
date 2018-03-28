@@ -32,3 +32,10 @@ random.seed
 # Intellij
 workspace.xml
 tasks.xml
+
+# Latex/vimtex
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz

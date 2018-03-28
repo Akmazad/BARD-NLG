@@ -47,6 +47,7 @@
 \DeclareMathOperator{\antecedents}{ant}
 \DeclareMathOperator{\consequents}{cons}
 \DeclareMathOperator{\descendants}{desc}
+\DeclareMathOperator{\evidences}{ev}
 
 \usepackage[bottom]{footmisc}       %
 \raggedbottom{}                       % Tasser le texte vers le haut sur une page
@@ -54,6 +55,9 @@
 
 \begin{document}
 
+% --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+% --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+% --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 \section{Network Structure}
 
 This algorithm attempts to find a meaningful way to present the \emph{structure} of a Bayesian Network (BN).
@@ -609,8 +613,8 @@ The entry points only allow to launch the main algorithm.
 It using the ordere list of ground nodes $G$ instead of a consequents of some rule (see line 12 above).
 
 
-\begin{algorithm2e}
-  \caption{Entry point forn sorting the rules}
+\begin{algorithm2e}[H]
+  \caption{Entry point for sorting the rules}
   \SetKwFunction{FMain}{getRules}
   \SetKwFunction{FMainR}{getRulesRec}
   \SetKwProg{Fn}{Function}{:}{}
@@ -638,7 +642,264 @@ It using the ordere list of ground nodes $G$ instead of a consequents of some ru
 
 
 
+\pagebreak[4]
 
+
+% --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+% --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
+% --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 \section{Network Segmentation}
+
+A segment is a Markov Blanket minus some nodes.
+A Markov Blanket is made of a \say{\emph{central node}} (sometimes called the \say{\emph{target node}} of the MB),
+and the nodes directly connected to it, plus the other causes of the effects nodes.
+Because it requires a central node, Markov Blankets (hence, segments) are built per node in the network.
+The challenge is to order those Markov Blanket correctly.
+
+In out algorithm, we follow a \say{evidences to target} approach, where \say{target} refers to the \say{query} node.
+Some easy rules follow:
+
+\begin{itemize}
+  \item Evidences are never used as a Markov Blanket's central node as they will be included in the Markov Blanket
+    of other nodes. This is also true for evidences that also are \say{common effect nodes}.
+  \item If there is a \say{loop}, it must be broken somewhere. The breaking location may be arbitrary as we did not
+    discuss specific breaking rules.
+\end{itemize}
+
+Let's have an overview of the algorithm:
+\begin{enumerate}
+  \item Compute the free paths from the evidences to the target.
+  \item Create a \emph{tree} whose root is the target node.
+    \say{Hang} paths on the tree, starting at at the root/target node.
+    \begin{itemize}
+      \item Paths with same prefix will share a common sub-branch.
+      \item However, common suffixes will be duplicated.
+    \end{itemize}
+  \item A special case of loop induce by common effect is handle here
+  \item Create an ordered list of nodes through a prefix run over the tree
+  \item Filter out evidence and duplicated
+    \begin{itemize}
+      \item The filtering of duplicated node naturally breaks the loops
+      \item First nodes seen in the list are kept, other are removed
+      \item This may cause \say{ugly} breaking, and is not a controlled breaking:
+        it indeed depends in the order in which paths were \say{hung} on the tree, hence of the tree itself,
+        as it the base of the prefix run.
+    \end{itemize}
+  \item Go through the ordered list, creating the segments
+\end{enumerate}
+
+\subsection{Building the tree}
+
+Let $B$ be a Bayesian Network, $T\in\nodes(B)$ the target node,
+and $\evidences(B)\subset\nodes(B)$ the set of evidences.
+Let $P$ be the set of free paths between the target $T$ and every evidences $E\in\evidences(BN)$.
+Le's take the spider network as an example, with $T = \text{Logs}$ and $\evidences = \{\text{COM, SAW, ER, QR}\}$
+
+\[
+  \xymatrix{%
+        &*+[F]{Logs}\ar[dl]\ar[dr]                &       \\
+    ER  &                                         & QR    \\
+        & Spider\ar[ul]\ar[ur]\ar[dl]\ar[dr]      &       \\
+    COM &                                         & SAW   \\
+  }
+\]
+
+We have the following 8 free paths:
+
+\begin{tabular}{l}
+  Logs $-$ QR \\
+  Logs $-$ QR $-$ Spider $-$ SAW \\
+  Logs $-$ QR $-$ Spider $-$ COM \\
+  Logs $-$ QR $-$ Spider $-$ ER  \\
+  Logs $-$ ER \\
+  Logs $-$ ER $-$ Spider $-$ SAW \\
+  Logs $-$ ER $-$ Spider $-$ COM \\
+  Logs $-$ ER $-$ Spider $-$ QR  \\
+\end{tabular}
+
+Which give us the following tree:
+
+\[
+  \xymatrix{%
+    Logs\ar[r]\ar[dddr] & QR\ar[r]  & Spider \ar[r]\ar[dr]\ar[ddr]  & SAW \\
+                        &           &                               & COM \\
+                        &           &                               & ER  \\
+                        & ER\ar[r]  & Spider \ar[r]\ar[dr]\ar[ddr]  & SAW \\
+                        &           &                               & COM \\
+                        &           &                               & QR  \\
+  }
+\]
+
+Also, by construction, we have the guarantee that all path in $P$ start with $T$.
+
+
+\begin{algorithm2e}[H]
+  \caption{Hanging a path in the tree}
+  \SetKwProg{Fn}{Function}{:}{}
+  \SetKwFunction{hang}{hang}
+  \SetKwFunction{first}{first}
+  \SetKwFunction{hasChild}{hasChild}
+  \SetKwFunction{getChild}{getChild}
+  \SetKwFunction{addChild}{addChild}
+  \SetKwFunction{removeFirst}{removeFirst}
+  \SetKwInOut{InOut}{InOut}
+  \InOut{A tree or subtree $t$}
+  \KwIn{A path $p$}
+
+  \Fn{\hang{$t$, $p$}}{%
+    \tcp{Precondition: $p.\first =t$}
+    $p\gets p.\removeFirst$\;
+    \If{$p$ has more than one node left}{%
+      $n \gets p.\first$\;
+      \If{$t.\hasChild(n)$}{%
+        \tcp{Get the child for $n$, then recurse}
+        \hang{$t.\getChild(n)$, $p$}\;
+      } \Else{%
+        \tcp{Create a new child for $n$, then recurse}
+        $c \gets t.\addChild(n)$\;
+        \hang{$c$, $p$}\;
+      }
+    }
+    \Else{%
+      \tcp{$p$ has only one node left: create the child if needed}
+      $n \gets p.\first$
+      \If{Not $t.\hasChild(n)$}{%
+        $t.\addChild(n)$
+      }
+    }
+    \KwResult{Updated $t$}
+  }
+\end{algorithm2e}
+
+
+\subsection{Special handling of a certain kind of loop}
+
+\textbf{Warning:} This has been made specifically for the Spider case, as it was the first requirement.
+It will work in all similar situation, but is not general at all.
+If anything, this part should be put in parenthesis until someone come up with something better
+(even if it is currently in the deployed version of the code).
+
+The spider network exhibits a very special kind of \say{loop} between Logs, ER, QR and Spider.
+As a result, we can see in the tree that there is a certain amount of repeated nodes (all but logs),
+and that QR, Spider and ER play a special role in it.
+This because QR and ER are common effect nodes.
+In our algorithm, we implemented a special case to handle loops induced by a two common effects nodes.
+\begin{center}
+\textbf{NO OTHER KIND OF LOOP IS HANDLED SPECIFICALLY}
+\end{center}
+
+To detect this special situation, we look if a set of sibling branches are sharing a two identical common effect nodes%
+\footnote{Again, this is not general at all, and if a loop with more than two common effect nodes show up,
+it will not be handled at all!}.
+Here, the node Logs have only two branches, if of them containing both $ER$ and $QR$.
+Once we have the two nodes, we search a path (the direction does no matters) between them;
+Let's call this set $r$.
+In our example that would be $ER - Spider - QR$ or $QR - Spider - ER$.
+
+\begin{algorithm2e}[H]
+  \caption{Find special loops}
+  \SetKwProg{Fn}{Function}{:}{}
+  \SetKwFunction{findLoop}{findLoop}
+  \SetKwFunction{first}{first}
+  \SetKwFunction{children}{children}
+  \SetKwFunction{findPath}{findPath}
+  \KwIn{A tree $t$ obtained following the previous section}
+  \KwOut{A set $r$ of path between \say{loop inducing} common effect nodes}
+
+  \Fn{\findLoop{$t$}}{%
+    $r \gets \emptyset$ \;
+    \ForEach{node $n\in{}t$}{%
+      \tcp{For all possible couple of children of $t$}
+      \ForEach{$(c_1, c_2) \in \binom{t.\children}{2}$}{%
+        \If{$c_1$ and $c_2$ share a subset $S$ of 2 common effect nodes}{%
+          $r \gets r \cup \{t.\findPath(S[0], S[1])\}$
+        }
+      }
+    }
+    \KwResult{$r$}
+  }
+\end{algorithm2e}
+
+
+Let $p\in{}r$ be a path forming a special loop.
+Because the loops are created from two common effect nodes,
+$p$ necessarily contains a node $x$ with only outgoing edges.
+In our case, this is the spider node, \eg{} $ER \leftarrow Spider \rar QR$%
+\footnote{We are only looking at the edges on the selected path; Spider could have ingoing arrows from elsewhere.}.
+Select that node, and remove all of its occurrences from the tree $t$.
+Also copy one of those occurrence: we now have a second tree $t'$.
+Remove from $t'$ all the nodes from the path $p$ but $x$.
+
+We now have a forest where the new trees come \emph{after} $t$.
+This is important as this will influence the order of the nodes when doing a prefix run.
+
+\[
+  \xymatrix{%
+    Logs\ar[r]\ar[dr]     & QR    \\
+                          & ER    \\
+    Spider\ar[r]\ar[dr]   & SAW   \\
+                          & COM   \\
+  }
+\]
+
+Note that Spider is absent from the first tree.
+However, Spider will be present in the Markov Blanket of Log, linking everything together.
+
+\subsection{Prefix run and segments generation}
+
+Given a forest resulting from the previous section, we do a prefix run on the trees.
+This process outputs en ordered list of nodes.
+In general, the trees will contain some remains of \say{loops} in the form of duplicated nodes.
+There position will be quite arbitrary as this depends on the order in which the paths have been \say{hung}.
+
+In our example, the prefix run will give us the following list:
+\[
+  [Logs, QR, ER, Spider, SAW, COM]
+\]
+
+Now, remove the evidences:
+\[
+  [Logs, Spider]
+\]
+
+Finally, if there is duplicated nodes, only keep their first occurrence.
+The result is a list $L$ of \say{\emph{central nodes}}, \ie{} nodes for which we are going to produce Markov Blanket
+and the corresponding segment.
+We go through the list $L$, and for each node we create its Markov Blanket.
+We remove from the Markov Blanket the previous \emph{central node} we already processed,
+producing a segment.
+This may produce a segment with only one node, \ie{} the central node.
+If this is the case, we ignore this segment, else we push the result on a stack.
+
+\begin{algorithm2e}[H]
+  \caption{Generating the segment from a list of central node}
+  \SetKwProg{Fn}{Function}{:}{}
+  \SetKwFunction{getSegments}{getSegments}
+  \SetKwFunction{getMarkovBlanket}{getMarkovBlanket}
+  \SetKwFunction{size}{size}
+  \SetKwFunction{push}{push}
+  \KwIn{A list $L$ of central nodes}
+  \KwOut{A stack $S$ of segments}
+
+  \Fn{\getSegments{$L$}}{%
+    $S \gets \emptyset$\;
+    \ForEach{central node $c\in{}L$}{%
+      $m \gets c.\getMarkovBlanket$\;
+      $s \gets m - {\text{previous central nodes}}$\;
+      \If{$s.\size > 1$}{%
+        $S \gets S.\push(s)$\;
+      }
+    }
+    \KwResult{$S$}
+  }
+\end{algorithm2e}
+
+Traversing the stack from top to bottom gives us our ordered list of segments:
+
+\begin{tabular}{l}
+  Spider, SAW, COM, QR ER\\
+  Logs, QR, ER, Spider
+\end{tabular}
+
 
 \end{document}

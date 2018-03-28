@@ -90,8 +90,9 @@ public class exampleSegmentCall {
 
 
 
+        System.out.println("SPIDER");
 
-        /*
+
         Analyser analyser = new Analyser();
 
         analyser.addTarget("Log");
@@ -109,7 +110,7 @@ public class exampleSegmentCall {
         analyser.addEdge("Spider", "Sawyer");
 
         analyser.getSegments();
-        */
+
 
 
         //BLACK SITE

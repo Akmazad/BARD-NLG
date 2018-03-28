@@ -254,14 +254,14 @@ public class PathTreeNode {
     }
 
     /**
-     * Postfix run, with accumulation in a list
+     * Prefix run, with accumulation in a list
      */
-    public <T> List<T> postFix(Function<Node, T> fun) {
+    public <T> List<T> preFix(Function<Node, T> fun) {
         T val = fun.apply(node);
         ArrayList<T> res = new ArrayList<>();
         res.add(val);
         children.forEach((k, v) -> {
-            res.addAll(v.postFix(fun));
+            res.addAll(v.preFix(fun));
         });
         return res;
     }
