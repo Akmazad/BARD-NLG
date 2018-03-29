@@ -44,8 +44,6 @@ public class Printer {
         this.forceSpace = false;
         // Initial component
         this.compStack.push(new Comp());
-        // CSS
-        this.sb.append(PrinterHelper.cssString);
     }
 
 
