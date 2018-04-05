@@ -58,6 +58,7 @@ public class BaseModule {
 	private static Net _net;
 	private static double epsilon = 0.01;
 	Path jsonPath = null;
+	private static boolean isBaseScenario = false;
 
 	// ------- Wrapper function for running main NLG function 
 	public String runNLG(JSONObject config, Path p) throws Exception {
@@ -140,7 +141,8 @@ public class BaseModule {
 		// ===== Response for Base Scenario (NO EVIDENCE - but at least one target)
 		if (conditionedNodeList.size() == 0) {
 			boolean adjectiveProb = true;
-
+			isBaseScenario = true;
+			
 			if (targetList.size() > 0) {
 				FinalOutputString += System.getProperty("line.separator").toString() + "In the absence of evidence, the prior "
 						+ ((targetList.size() > 1) ? "probabilities of " : "probability of ");
@@ -172,7 +174,7 @@ public class BaseModule {
 
 			//------- customizing this for long verbosity
 			if (verbosity.equals("long")) {
-				//------------------- Text for BN structure + Probability Tables [with FAKE evidence for all nodes]
+				//------------------- Text for BN structure + Probability Tables 
 				String bnText = getTextforBNstructure_AgendaAlgo(targetList);
 				FinalOutputString = "<h1 class=\"target\">Target" + ((targetList.size() > 1)?"s: ":": ") + escapeHtml(getTargetList(targetList)) + "</h1>\n <div class=\"summary\"> \n <h1>Summary</h1>\n" + escapeHtml(FinalOutputString) + bnText + "</div>";
 
@@ -236,7 +238,7 @@ public class BaseModule {
 			}
 			// --------------------- End
 
-			//------------------- Text for BN structure + Probability Tables [with FAKE evidence for all nodes]
+			//------------------- Text for BN structure + Probability Tables 
 				outputResponse_for_A_Target += getTextforBNstructure_AgendaAlgo(backupConditionedList);
 			// --------------------- End 
 
@@ -263,6 +265,7 @@ public class BaseModule {
 		return FinalOutputString;							// return the final texts (either "summary" or "Detailed" explanation)
 	}
 
+	// this over-ridding function is for Base Scenario
 	private String getTextforBNstructure_AgendaAlgo(ArrayList<ArrayList<String>> targetList) throws Exception {
 		String retStr = "";
 		List<CausalEdge> lCausalEdge = new ArrayList<>();
@@ -288,9 +291,10 @@ public class BaseModule {
 
 		List<Rule> orderedText = new StructureAnalyser(new HashSet<>(lCausalEdge)).getRules();
 		TextGenerator tg = new TextGenerator();
-		return tg.printBNTextwithCausalityOnly(orderedText, allNodeInfoList);
+		return tg.printBNTextwithCausalityOnly(orderedText, allNodeInfoList, isBaseScenario);		// isBaseScenario = TRUE here
 	}
 
+	// this over-riding function is for normal (non-Base) Scenario
 	private String getTextforBNstructure_AgendaAlgo(Hashtable conditionedNodeList) throws Exception {
 		String retStr = "";
 		List<CausalEdge> lCausalEdge = new ArrayList<>();
@@ -310,7 +314,7 @@ public class BaseModule {
 		}
 		List<Rule> orderedText = new StructureAnalyser(new HashSet<>(lCausalEdge)).getRules();
 		TextGenerator tg = new TextGenerator();
-		return tg.printBNTextwithCausalityOnly(orderedText, allNodeInfoList);
+		return tg.printBNTextwithCausalityOnly(orderedText, allNodeInfoList, isBaseScenario);// isBaseScenario = FALSE here
 	}
 
 	private String getTargetList(ArrayList<ArrayList<String>> targetList) {
