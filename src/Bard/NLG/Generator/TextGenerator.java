@@ -111,7 +111,7 @@ public class TextGenerator {
     // --- --- --- Preamble
 
     
-    public String printBNTextwithCausalityOnly(List<Rule> orderedText, Set<NodeInfo> allNodeInfoList) {
+    public String printBNTextwithCausalityOnly(List<Rule> orderedText, Set<NodeInfo> allNodeInfoList, boolean isBaseScenario) {
     	//printer.addH2("Preamble");
     	printer.addH2("Bayesian Network Structure");
 
@@ -128,22 +128,39 @@ public class TextGenerator {
     		}
     	}
     	// --- --- --- After all the segments: create a table
-    	printer.srcnl()
-    	.addH2("Initial and Updated Probabilities")
-    	.openPar()
-    	.addText("The following table contains the initial probabilities in the absence of " + 
-    			"evidence, and the updated probabilities after the evidence has been " + 
-    			"considered").eos().srcnl()
-    	.closePar();
-
+    	if(isBaseScenario) {
+    		printer.srcnl()
+    		.addH2("Base Scenario Probabilities")
+    		.openPar()
+    		.addText("The following table contains the probability for each variable in the base scenario.  "
+    				+ "The base scenario contains no evidence, "
+    				+ "so the probabilities remain unchanged").eos().srcnl()
+    		.closePar();
+    	}else {
+    		printer.srcnl()
+    		.addH2("Updated Scenario Probabilities")
+    		.openPar()
+    		.addText("The following table contains the probability for each variable "
+    				+ "in the base scenario (in the absence of evidence) and the updated "
+    				+ "probabilities after the evidence for this scenario has been considered").eos().srcnl()
+    		.closePar();
+    	}
+    		
     	printer.openTable();
-    	printer.openTableHead().openTableRow()
-    	.tableHeader("Type").onLast(Printer.Comp::doRaw)
-    	.tableHeader("Variable = State").onLast(Printer.Comp::doRaw)
-    	.tableHeader("Initial Probability").onLast(Printer.Comp::doRaw)
-    	.tableHeader("Updated Probability").onLast(Printer.Comp::doRaw)
-    	.closeTableRow().closeTableHead();
-
+    	if(isBaseScenario) {
+    		printer.openTableHead().openTableRow()
+    		.tableHeader("Type").onLast(Printer.Comp::doRaw)
+    		.tableHeader("Variable = State").onLast(Printer.Comp::doRaw)
+    		.tableHeader("Probability").onLast(Printer.Comp::doRaw)
+    		.closeTableRow().closeTableHead();
+    	}else {
+    		printer.openTableHead().openTableRow()
+    		.tableHeader("Type").onLast(Printer.Comp::doRaw)
+    		.tableHeader("Variable = State").onLast(Printer.Comp::doRaw)
+    		.tableHeader("Base Scenario Probability").onLast(Printer.Comp::doRaw)
+    		.tableHeader("Updated Scenario Probability").onLast(Printer.Comp::doRaw)
+    		.closeTableRow().closeTableHead();
+    	}
     	// Body
     	printer.openTableBody();
     	allNodeInfoList.stream().sorted(Comparator.comparing(a -> a.nodeName)).sorted(Comparator.comparing(a -> a.isUltimateTarget ? 0 : a.isEvidence ? 1 : 2)).forEach(ni -> {
@@ -164,8 +181,8 @@ public class TextGenerator {
 
     		boolean adjPhrase = true;
     		printer.tableData(getPercentFormat(ni.prior) + "% (" + PutVerbalWord_Az(ni.prior, false, adjPhrase) + ")").onLast(Printer.Comp::doRaw);
-    		printer.tableData(getPercentFormat(ni.posterior) + "% (" + PutVerbalWord_Az(ni.posterior, false, adjPhrase) + ")").onLast(Printer.Comp::doRaw);
-
+    		if(!isBaseScenario)
+    			printer.tableData(getPercentFormat(ni.posterior) + "% (" + PutVerbalWord_Az(ni.posterior, false, adjPhrase) + ")").onLast(Printer.Comp::doRaw);
 
     		printer.closeTableRow();
     	});
